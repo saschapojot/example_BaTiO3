@@ -163,6 +163,10 @@ public:
     {
         this->json2Coefs(coefsInStr);
 
+        u0=std::shared_ptr<double[]>(new double[elemNumTot_u], std::default_delete<double[]>());
+        u1=std::shared_ptr<double[]>(new double[elemNumTot_u], std::default_delete<double[]>());
+        u2=std::shared_ptr<double[]>(new double[elemNumTot_u], std::default_delete<double[]>());
+
         std::cout<<"kappa2="<<kappa2_val<<", alpha="<<alpha_val<<", gamma="<<gamma_val
         <<", j1="<<j1_val<<", j2="<<j2_val<<", j3="<<j3_val
         <<", j4="<<j4_val<<", j5="<<j5_val<<", j6="<<j6_val
@@ -172,6 +176,15 @@ public:
         <<", xi_Ba="<<xi_Ba<<", xi_Ti="<<xi_Ti<<", xi_O_parallel="<<xi_O_parallel
         <<", xi_O_perpendicular="<<xi_O_perpendicular
         <<std::endl;
+    }
+
+    double operator() (const double *eta_H,const double *v0,const double *v1, const double *v2)override
+    {
+
+
+
+    return 0;
+
     }
 
     double E_self(const double* u0,const double * u1, const double * u2)
@@ -243,4 +256,8 @@ public:
     double xi_O_perpendicular;
     int N;
     int elemNumTot_u;
+
+    std::shared_ptr<double[]> u0;
+    std::shared_ptr<double[]> u1;
+    std::shared_ptr<double[]> u2;
 };

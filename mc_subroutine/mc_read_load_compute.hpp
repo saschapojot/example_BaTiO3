@@ -166,6 +166,8 @@ public:
         }//end while
 
         this->load_data(flushLastFile);
+        this->potFuncPtr = createPotentialFunction(potFuncName, coefsToPotFunc);
+        potFuncPtr->init();
     }
 
     /// load data by flushNum
