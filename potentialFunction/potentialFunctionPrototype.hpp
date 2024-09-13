@@ -14,11 +14,13 @@
 #include <stdexcept>
 #include <string>
 
+const auto PI=M_PI;
+
 class potentialFunction
 {
 public:
     //base class for potential function
-    virtual double operator()(const double *eta_H,const double *v0,const double *v1, const double *v2)=0;
+    virtual double operator()(const std::shared_ptr<double[]>& eta_H,const std::shared_ptr<double[]>& v0,const std::shared_ptr<double[]>& v1, const std::shared_ptr<double[]>& v2)=0;
     virtual void json2Coefs(const std::string &coefsStr)=0;
     virtual  void init()=0;
     virtual ~ potentialFunction() {};

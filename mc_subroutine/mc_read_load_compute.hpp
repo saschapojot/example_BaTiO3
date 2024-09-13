@@ -28,7 +28,7 @@
 #include <typeinfo>
 #include <vector>
 namespace fs = boost::filesystem;
-const auto PI=M_PI;
+
 
 
 namespace py = boost::python;
@@ -168,6 +168,10 @@ public:
         this->load_data(flushLastFile);
         this->potFuncPtr = createPotentialFunction(potFuncName, coefsToPotFunc);
         potFuncPtr->init();
+
+        //check potential value
+        (*potFuncPtr)(eta_H_init,v0_init,v1_init,v2_init);
+
     }
 
     /// load data by flushNum

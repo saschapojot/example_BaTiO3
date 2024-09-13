@@ -87,8 +87,8 @@ flushToWrite=jsonDataFromConf["sweep_to_write"]
 flushLastFile=loadedJsonData["flushLastFile"]
 
 
-
-coefsStr=jsonDataFromConf["coefs"]+","+str(N)
+lambdaStr=jsonDataFromConf["lambda"]
+coefsStr=jsonDataFromConf["coefs"]+","+str(N)+","+lambdaStr
 newFlushNum=jsonFromSummary["newFlushNum"]
 TDirRoot=jsonFromSummary["TDirRoot"]
 U_dist_dataDir=jsonFromSummary["U_dist_dataDir"]

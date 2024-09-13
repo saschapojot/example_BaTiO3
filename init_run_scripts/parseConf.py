@@ -56,6 +56,7 @@ def parseConfContents(file):
     NStr=""
     hStr=""
     swp_multiplyStr=""
+    lambdaStr=""
     float_pattern = r'[-+]?(?:\d*\.\d+|\d+)(?:[eE][-+]?\d+)?'
     boolean_pattern = r'(true|false)'
 
@@ -169,6 +170,15 @@ def parseConfContents(file):
                 else:
                     print(fmtErrStr+oneLine)
                     exit(fmtCode)
+            #match lambda
+            if key=="lambda":
+
+                match_lambda=re.match(rf"({float_pattern})",value)
+                if match_lambda:
+                    lambdaStr=match_lambda.group(1)
+                else:
+                    print(fmtErrStr+oneLine)
+                    exit(fmtCode)
         else:
             print("line: "+oneLine+" is discarded.")
             continue
@@ -210,6 +220,9 @@ def parseConfContents(file):
 
     if swp_multiplyStr=="":
         swp_multiplyStr="1"
+    if lambdaStr=="":
+        print("lambda not found in "+str(file))
+        exit(valueMissingCode)
 
 
     if obs_name=="":
@@ -225,7 +238,8 @@ def parseConfContents(file):
             "confFileName":file,
             "N":NStr,
             "h":hStr,
-            "sweep_multiple":swp_multiplyStr
+            "sweep_multiple":swp_multiplyStr,
+            "lambda": lambdaStr
 
         }
         return dictTmp
@@ -243,7 +257,8 @@ def parseConfContents(file):
             "confFileName":file,
             "N":NStr,
             "h":hStr,
-            "sweep_multiple":swp_multiplyStr
+            "sweep_multiple":swp_multiplyStr,
+            "lambda": lambdaStr
 
 
         }

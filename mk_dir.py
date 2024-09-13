@@ -135,7 +135,9 @@ def contents_to_conf(k):
         "\n",
         "h=5e-2\n",
         "\n",
-        "sweep_multiple=100\n"
+        "sweep_multiple=100\n",
+        "\n",
+        "lambda="+str(1/N*0.2)
 
 
 
