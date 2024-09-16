@@ -188,11 +188,48 @@ public:
         {
             this->lambda = std::stod(temp);
         }
+
+        //read B100
+        if (std::getline(iss, temp, ','))
+        {
+            this->B100_val = std::stod(temp);
+        }
+
+        //read B111
+        if (std::getline(iss, temp, ','))
+        {
+            this->B111_val = std::stod(temp);
+        }
+
+        //read B412
+        if (std::getline(iss, temp, ','))
+        {
+            this->B412_val = std::stod(temp);
+        }
     } // end json2Coefs
 
     void init() override
     {
         this->json2Coefs(coefsInStr);
+
+        this->gamma11_val=B11_val/4.0;
+        this->gamma12_val=B12_val/8.0;
+        this->gamma44_val=B44_val/8.0;
+
+        B211_val=B100_val;
+        B322_val=B100_val;
+
+        B122_val=B111_val;
+        B200_val=B111_val;
+        B222_val=B111_val;
+        B300_val=B111_val;
+        B311_val=B111_val;
+
+        B421_val=B412_val;
+        B502_val=B412_val;
+        B520_val=B412_val;
+        B601_val=B412_val;
+        B610_val=B412_val;
 
         u0 = std::shared_ptr<double[]>(new double[elemNumTot_u], std::default_delete<double[]>());
         u1 = std::shared_ptr<double[]>(new double[elemNumTot_u], std::default_delete<double[]>());
@@ -216,9 +253,15 @@ public:
             << ", B4yz=" << B4yz_val << ", ZStar=" << ZStar_val << ", epsilon_infty=" << epsilon_infty
             << ", xi_Ba=" << xi_Ba << ", xi_Ti=" << xi_Ti << ", xi_O_parallel=" << xi_O_parallel
             << ", xi_O_perpendicular=" << xi_O_perpendicular << ", N=" << N << ", lambda=" << lambda
+            <<", gamma11_val="<<gamma11_val<<", gamma12_val="<<gamma12_val<<", gamma44_val="<<gamma44_val
+            <<", B100_val="<<B100_val<<", B211_val="<<B211_val<<", B322_val"<<B322_val
+            <<", B111_val="<<B111_val<<", B122_val="<<B122_val<<", B200_val"<<B200_val
+            <<", B222_val="<<B222_val<<", B300_val="<<B300_val<<", B311_val"<<B311_val
+            <<", B412_val="<<B412_val<<", B421_val="<<B421_val<<", B502_val="<<B502_val
+            <<", B520_val="<<B520_val<<", B601_val="<<B601_val<<", B610_val="<<B610_val
             << std::endl;
     }
-
+    ///potential energy
     double operator()(const std::shared_ptr<double[]>& eta_H, const std::shared_ptr<double[]>& v0,
                       const std::shared_ptr<double[]>& v1, const std::shared_ptr<double[]>& v2) override
     {
@@ -235,6 +278,9 @@ public:
 
         double energy_short=E_short();
         std::cout<<"energy_short="<<energy_short<<std::endl;
+
+        double energy_elas=E_elas(eta_H,v0,v1,v2);
+        std::cout<<"energy_elas="<<energy_elas<<std::endl;
 
         return 0;
     }
@@ -782,6 +828,314 @@ public:
     int python_mod(int a, int M) {
         return (a % M + M) % M;
     }
+
+
+
+    //elastic energy
+
+    double E_elas(const std::shared_ptr<double[]>& eta_H,const std::shared_ptr<double[]>& v0,
+                      const std::shared_ptr<double[]>& v1, const std::shared_ptr<double[]>& v2)
+    {
+        //homogeneous part
+
+        double eta_H1=eta_H[0];
+        double eta_H2=eta_H[1];
+        double eta_H3=eta_H[2];
+
+        double eta_H4=eta_H[3];
+        double eta_H5=eta_H[4];
+        double eta_H6=eta_H[5];
+
+        double N_double=static_cast<double>(N);
+
+        double homogeneous_part=0.5*std::pow(N_double,3)*B11_val*(std::pow(eta_H1,2)+std::pow(eta_H2,2)+std::pow(eta_H3,2))
+                               +std::pow(N_double,3)*B12_val*(eta_H1*eta_H2+eta_H2*eta_H3+eta_H3*eta_H1)
+                                +0.5*std::pow(N_double,3)*B44_val*(std::pow(eta_H4,2)+std::pow(eta_H5,2)+std::pow(eta_H6,2));
+
+
+//index: Ba=0, Ti=1, O1=2, O2=3,O3=4
+
+//inhomogeneous part
+        double E_elas_I1=0;
+        for(int i=0;i<N;i++)
+        {
+            for(int j=0;j<N;j++)
+            {
+                for(int k=0;k<N;k++)
+                {
+                    int i_plus_1=python_mod(i+1,N);
+                    int i_minus_1=python_mod(i-1,N);
+                    int j_plus_1=python_mod(j+1,N);
+                    int j_minus_1=python_mod(j-1,N);
+
+                    int ind_Ba=0;
+
+                    int ijk_Ba=flattened_ind_for_E_elas(i,j,k,ind_Ba);
+
+                    int iPlus1jk_Ba=flattened_ind_for_E_elas(i_plus_1,j,k,ind_Ba);
+                    int iMinus1jk_Ba=flattened_ind_for_E_elas(i_minus_1,j,k,ind_Ba);
+
+                    int ijPlus1k_Ba=flattened_ind_for_E_elas(i,j_plus_1,k,ind_Ba);
+                    int ijMinus1k_Ba=flattened_ind_for_E_elas(i,j_minus_1,k,ind_Ba);
+
+
+                    //row 1
+                    E_elas_I1+=gamma11_val*std::pow(v0[ijk_Ba]-v0[iPlus1jk_Ba],2);
+
+                    //row2
+                    E_elas_I1+=gamma11_val*std::pow(v0[ijk_Ba]-v0[iMinus1jk_Ba],2);
+
+                    //row 3
+                    E_elas_I1+=gamma12_val*(v0[ijk_Ba]-v0[iPlus1jk_Ba])*(v1[ijk_Ba]-v1[ijPlus1k_Ba]);
+
+                    //row 4
+                    E_elas_I1+=gamma12_val*(v0[ijk_Ba]-v0[iMinus1jk_Ba])*(v1[ijk_Ba]-v1[ijMinus1k_Ba]);
+
+
+                    //row 5
+                    E_elas_I1+=gamma44_val*std::pow(v0[ijk_Ba]-v0[ijPlus1k_Ba]+v1[ijk_Ba]-v1[iPlus1jk_Ba],2);
+
+                    //row 6
+                    E_elas_I1+=gamma44_val*std::pow(v0[ijk_Ba]-v0[ijMinus1k_Ba]+v1[ijk_Ba]-v1[iMinus1jk_Ba],2);
+
+                }//end k
+            }//end j
+        }//end i
+
+        double E_elas_I2=0;
+        for(int i=0;i<N;i++)
+        {
+            for(int j=0;j<N;j++)
+            {
+                for(int k=0;k<N;k++)
+                {
+                    int i_plus_1=python_mod(i+1,N);
+                    int i_minus_1=python_mod(i-1,N);
+
+                    int k_plus_1=python_mod(k+1,N);
+                    int k_minus_1=python_mod(k-1,N);
+
+                    int ind_Ba=0;
+
+                    int ijk_Ba=flattened_ind_for_E_elas(i,j,k,ind_Ba);
+
+                    int ij_kPlus1=flattened_ind_for_E_elas(i,j,k_plus_1,ind_Ba);
+                    int ij_kMinus1=flattened_ind_for_E_elas(i,j,k_minus_1,ind_Ba);
+
+                    int iPlus1_jk=flattened_ind_for_E_elas(i_plus_1,j,k,ind_Ba);
+                    int iMinus1_jk=flattened_ind_for_E_elas(i_minus_1,j,k,ind_Ba);
+
+                    //row 1
+                    E_elas_I2+=gamma11_val*std::pow(v2[ijk_Ba]-v2[ij_kPlus1],2);
+
+                    //row 2
+                    E_elas_I2+=gamma11_val*std::pow(v2[ijk_Ba]-v2[ij_kMinus1],2);
+
+                    //row 3
+                    E_elas_I2+=gamma12_val*(v2[ijk_Ba]-v2[ij_kPlus1])*(v0[ijk_Ba]-v0[iPlus1_jk]);
+
+                    //row 4
+                    E_elas_I2+=gamma12_val*(v2[ijk_Ba]-v2[ij_kMinus1])*(v0[ijk_Ba]-v0[iMinus1_jk]);
+
+                    //row 5
+                    E_elas_I2+=gamma44_val*std::pow(v2[ijk_Ba]-v2[iPlus1_jk]+v0[ijk_Ba]-v0[ij_kPlus1],2);
+
+                    //row 6
+                    E_elas_I2+=gamma44_val*std::pow(v2[ijk_Ba]-v2[iMinus1_jk]+v0[ijk_Ba]-v0[ij_kMinus1],2);
+                }//end k
+            }//end j
+        }//end i
+    double E_elas_I3=0;
+        for(int i=0;i<N;i++)
+        {
+            for(int j=0;j<N;j++)
+            {
+                for(int k=0;k<N;k++)
+                {
+                    int j_plus_1=python_mod(j+1,N);
+                    int j_minus_1=python_mod(j-1,N);
+
+                    int k_plus_1=python_mod(k+1,N);
+                    int k_minus_1=python_mod(k-1,N);
+
+                    int ind_Ba=0;
+
+                    int ijk_Ba=flattened_ind_for_E_elas(i,j,k,ind_Ba);
+
+                    int i_jPlus1_k=flattened_ind_for_E_elas(i,j_plus_1,k,ind_Ba);
+                    int i_jMinus1_k=flattened_ind_for_E_elas(i,j_minus_1,k,ind_Ba);
+
+                    int ij_kPlus1=flattened_ind_for_E_elas(i,j,k_plus_1,ind_Ba);
+                    int ij_kMinus1=flattened_ind_for_E_elas(i,j,k_minus_1,ind_Ba);
+
+                    //row 1
+                    E_elas_I3+=gamma11_val*std::pow(v1[ijk_Ba]-v1[i_jPlus1_k],2);
+
+                    //row 2
+                    E_elas_I3+=gamma11_val*std::pow(v1[ijk_Ba]-v1[i_jMinus1_k],2);
+
+                    //row 3
+                    E_elas_I3+=gamma12_val*(v1[ijk_Ba]-v1[i_jPlus1_k])*(v2[ijk_Ba]-v2[ij_kPlus1]);
+
+                    //row 4
+                    E_elas_I3+=gamma12_val*(v1[ijk_Ba]-v1[i_jMinus1_k])*(v2[ijk_Ba]-v2[ij_kMinus1]);
+
+                    // row 5
+                    E_elas_I3+=gamma44_val*std::pow(v1[ijk_Ba]-v1[ij_kPlus1]+v2[ijk_Ba]-v2[i_jPlus1_k],2);
+
+                    //row 6
+                    E_elas_I3+=gamma44_val*std::pow(v1[ijk_Ba]-v1[ij_kMinus1]+v2[ijk_Ba]-v2[i_jMinus1_k],2);
+
+                }//end k
+            }//end j
+        }//end i
+
+        return homogeneous_part+ E_elas_I1+E_elas_I2+E_elas_I3;
+    }//end E_elas
+
+    int flattened_ind_for_E_elas(const int &i,const int& j, const int &k, const int& q)
+    {
+        //i,j,k take values from 0 to N1, q takes values from 0 to 4
+        int ind=q+5*k+5*j*N+5*i*N*N;
+
+        return ind;
+    }
+
+
+    double E_elas_mode_int(const std::shared_ptr<double[]>& eta_H,const std::shared_ptr<double[]>& v0,
+                      const std::shared_ptr<double[]>& v1, const std::shared_ptr<double[]>& v2)
+    {
+
+
+        double val=0;
+        //homogeneous part
+
+        double eta_H1=eta_H[0];
+        double eta_H2=eta_H[1];
+        double eta_H3=eta_H[2];
+
+        double eta_H4=eta_H[3];
+        double eta_H5=eta_H[4];
+        double eta_H6=eta_H[5];
+
+        for(int i=0;i<N;i++)
+        {
+            for(int j=0;j<N;j++)
+            {
+                for(int k=0;k<N;k++)
+                {
+                    int i_minus_1=python_mod(i-1,N);
+                    int j_minus_1=python_mod(j-1,N);
+                    int k_minus_1=python_mod(k-1,N);
+                    int ind_Ba=0;
+
+                    //i,j,k
+                    int ijk=flattened_ind_for_E_elas(i,j,k,ind_Ba);
+
+                    //i-1,j,k
+                    int iMinus1_jk=flattened_ind_for_E_elas_mode_int(i_minus_1,j,k,ind_Ba);
+
+
+                    //i-1,j-1,k
+                    int iMinus1_jMinus1_k=flattened_ind_for_E_elas(i_minus_1,j_minus_1,k,ind_Ba);
+
+                    //i,j-1,k
+                    int i_jMinus1_k=flattened_ind_for_E_elas(i,j_minus_1,k,ind_Ba);
+
+                    //i-1,j,k-1
+                    int iMinus1_j_kMinus1=flattened_ind_for_E_elas(i_minus_1,j,k_minus_1,ind_Ba);
+
+                    //i,j,k-1
+                    int ij_kMinus1=flattened_ind_for_E_elas(i,j,k_minus_1,ind_Ba);
+
+                    //i-1,j-1,k-1
+                    int iMinus1_jMinus1_kMinus1=flattened_ind_for_E_elas(i_minus_1,j_minus_1,k_minus_1,ind_Ba);
+
+                    //i,j-1,k-1
+                    int i_jMinus1_kMinus1=flattened_ind_for_E_elas(i,j_minus_1,k_minus_1,ind_Ba);
+
+                    double Delta_vxx_ijk=v0[iMinus1_jk]-v0[ijk]
+                                        +v0[iMinus1_jMinus1_k]-v0[i_jMinus1_k]
+                                        + v0[iMinus1_j_kMinus1]-v0[ij_kMinus1]
+                                        +v0[iMinus1_jMinus1_kMinus1]-v0[i_jMinus1_kMinus1];
+
+                    double etaI1ijk=Delta_vxx_ijk/4.0;
+
+                    double Delta_vyy_ijk=v1[i_jMinus1_k]-v1[ijk]
+                                        +v1[i_jMinus1_kMinus1]-v1[ij_kMinus1]
+                                        +v1[iMinus1_jMinus1_k]-v1[iMinus1_jk]
+                                        +v1[iMinus1_jMinus1_kMinus1]-v1[iMinus1_j_kMinus1];
+                    double etaI2ijk=Delta_vyy_ijk/4.0;
+
+
+
+                    double Delta_vzz_ijk=v2[ij_kMinus1]-v2[ijk]
+                                        +v2[iMinus1_j_kMinus1]-v2[iMinus1_jk]
+                                        +v2[i_jMinus1_kMinus1]-v2[i_jMinus1_k]
+                                        +v2[iMinus1_jMinus1_kMinus1]-v2[iMinus1_jMinus1_k];
+
+                    double etaI3ijk=Delta_vzz_ijk/4.0;
+
+                    double Delta_vxy_ijk=v1[iMinus1_jk]-v1[ijk]
+                                        + v1[iMinus1_jMinus1_k]-v1[i_jMinus1_k]
+                                        + v1[iMinus1_j_kMinus1]-v1[ij_kMinus1]
+                                        + v1[iMinus1_jMinus1_kMinus1]-v1[iMinus1_jMinus1_k];
+
+
+                    double Delta_vyx_ijk=v0[i_jMinus1_k]-v0[ijk]
+                                        + v0[iMinus1_jMinus1_k]-v0[iMinus1_jk]
+                                        + v0[i_jMinus1_kMinus1]-v0[ij_kMinus1]
+                                        + v0[iMinus1_jMinus1_kMinus1] -v0[iMinus1_jMinus1_k];
+
+                    double etaI6ijk=(Delta_vxy_ijk+Delta_vyx_ijk)/4.0;
+
+
+
+                    double Delta_vzx_ijk=v0[ij_kMinus1]-v0[ijk]
+                                        + v0[iMinus1_j_kMinus1]-v0[iMinus1_jk]
+                                        + v0[i_jMinus1_kMinus1]-v0[i_jMinus1_k]
+                                        + v0[iMinus1_jMinus1_kMinus1]- v0[iMinus1_j_kMinus1];
+
+
+                    double Delta_vxz_ijk=v2[iMinus1_jk]-v2[ijk]
+                                        + v2[iMinus1_j_kMinus1] -v2[ij_kMinus1]
+                                        + v2[iMinus1_jMinus1_k] -v2[i_jMinus1_k]
+                                        + v2[iMinus1_jMinus1_kMinus1] -v2[iMinus1_j_kMinus1];
+
+                    double etaI5ijk=(Delta_vzx_ijk+Delta_vxz_ijk)/4.0;
+
+
+                    double Delta_vyz_ijk=v2[i_jMinus1_k] -v2[ijk]
+                                        + v2[i_jMinus1_kMinus1]-v2[ij_kMinus1]
+                                        + v2[iMinus1_jMinus1_k] -v2[iMinus1_jk]
+                                        + v2[iMinus1_jMinus1_kMinus1] -v2[i_jMinus1_kMinus1];
+
+
+                    double Delta_vzy_ijk=v1[ij_kMinus1] -v1[ijk]
+                                        + v1[i_jMinus1_kMinus1] -v1[i_jMinus1_k]
+                                        + v1[iMinus1_j_kMinus1]-v1[iMinus1_jk]
+                                        + v1[iMinus1_jMinus1_kMinus1] -v1[i_jMinus1_kMinus1];
+
+                    double etaI4ijk=(Delta_vyz_ijk+Delta_vzy_ijk)/4.0;
+
+
+
+
+                }//end k
+            }//end j
+
+        }//end i
+
+
+    }
+
+    int flattened_ind_for_E_elas_mode_int(const int &i,const int& j, const int &k, const int& q)
+    {
+        //i,j,k take values from 0 to N1, q takes values from 0 to 4
+        int ind=q+5*k+5*j*N+5*i*N*N;
+
+        return ind;
+    }
 public:
     std::string coefsInStr;
     double kappa2_val;
@@ -797,6 +1151,16 @@ public:
     double B11_val;
     double B12_val;
     double B44_val;
+    double gamma11_val;
+    double gamma12_val;
+    double gamma44_val;
+
+    double B100_val,B111_val,B122_val;
+    double B200_val,B211_val,B222_val;
+    double B300_val,B311_val,B322_val;
+    double B412_val,B421_val;
+    double B502_val,B520_val;
+    double B601_val,B610_val;
 
     double B1xx_val;
     double B1yy_val;

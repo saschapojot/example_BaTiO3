@@ -57,6 +57,9 @@ def parseConfContents(file):
     hStr=""
     swp_multiplyStr=""
     lambdaStr=""
+    B100Str=""
+    B111Str=""
+    B412Str=""
     float_pattern = r'[-+]?(?:\d*\.\d+|\d+)(?:[eE][-+]?\d+)?'
     boolean_pattern = r'(true|false)'
 
@@ -179,6 +182,31 @@ def parseConfContents(file):
                 else:
                     print(fmtErrStr+oneLine)
                     exit(fmtCode)
+            #match B100
+            if key=="B100":
+                match_B100=re.match(rf"({float_pattern})",value)
+                if match_B100:
+                    B100Str=match_B100.group(1)
+                else:
+                    print(fmtErrStr+oneLine)
+                    exit(fmtCode)
+            #match B111
+            if key=="B111":
+                match_B111=re.match(rf"({float_pattern})",value)
+                if match_B111:
+                    B111Str=match_B111.group(1)
+                else:
+                    print(fmtErrStr+oneLine)
+                    exit(fmtCode)
+            #match B412
+            if key=="B412":
+                match_B412=re.match(rf"({float_pattern})",value)
+                if match_B412:
+                    B412Str=match_B412.group(1)
+                else:
+                    print(fmtErrStr+oneLine)
+                    exit(fmtCode)
+
         else:
             print("line: "+oneLine+" is discarded.")
             continue
@@ -224,6 +252,18 @@ def parseConfContents(file):
         print("lambda not found in "+str(file))
         exit(valueMissingCode)
 
+    if B100Str=="":
+        print("B100 not found in "+str(file))
+        exit(valueMissingCode)
+
+    if B111Str=="":
+        print("B111 not found in "+str(file))
+        exit(valueMissingCode)
+
+    if B412Str=="":
+        print("B412 not found in "+str(file))
+        exit(valueMissingCode)
+
 
     if obs_name=="":
         dictTmp={
@@ -239,7 +279,10 @@ def parseConfContents(file):
             "N":NStr,
             "h":hStr,
             "sweep_multiple":swp_multiplyStr,
-            "lambda": lambdaStr
+            "lambda": lambdaStr,
+            "B100":B100Str,
+            "B111":B111Str,
+            "B412":B412Str
 
         }
         return dictTmp
@@ -258,7 +301,10 @@ def parseConfContents(file):
             "N":NStr,
             "h":hStr,
             "sweep_multiple":swp_multiplyStr,
-            "lambda": lambdaStr
+            "lambda": lambdaStr,
+            "B100":B100Str,
+            "B111":B111Str,
+            "B412":B412Str
 
 
         }
