@@ -169,10 +169,27 @@ public:
         this->potFuncPtr = createPotentialFunction(potFuncName, coefsToPotFunc);
         potFuncPtr->init();
 
-        //check potential value
-        (*potFuncPtr)(eta_H_init,v0_init,v1_init,v2_init);
+        std::cout<<"sweepToWrite="<<sweepToWrite<<std::endl;
+        std::cout<<"mcNum_1sweep="<<mcNum_1sweep<<std::endl;
+        std::cout<<"newFlushNum="<<newFlushNum<<std::endl;
+        std::cout<<"flushLastFile+1="<<flushLastFile+1<<std::endl;
+        std::cout<<"TDirRoot="<<TDirRoot<<std::endl;
+        std::cout<<"U_dist_dataDir="<<U_dist_dataDir<<std::endl;
 
+
+
+
+        //check potential value
+       // double pot= (*potFuncPtr)(eta_H_init,v0_init,v1_init,v2_init);
+       //  std::cout<<"pot="<<pot<<std::endl;
     }
+public:
+
+    double generate_nearby_normal(const double & x,const double &sigma);
+
+    void proposal(const double &xCurr, double &xNext);
+
+    double acceptanceRatio(const double &xCurr, const double&UCurr, const double& xNext, const double& UNext);
 
     /// load data by flushNum
     /// @param flushNum

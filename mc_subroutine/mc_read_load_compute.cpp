@@ -88,3 +88,36 @@ void mc_computation::load_pickle_data(const std::string& filename, std::shared_p
 
 
     }
+
+
+
+double mc_computation::generate_nearby_normal(const double & x,const double &sigma)
+{
+
+    std::normal_distribution<> dist_normal(x,sigma);
+
+    double xNext=dist_normal(e2);
+
+    return xNext;
+
+}
+
+
+void mc_computation::proposal(const double &xCurr, double &xNext)
+{
+
+
+    xNext=generate_nearby_normal(xCurr,h);
+}
+
+double mc_computation::acceptanceRatio(const double &xCurr, const double&UCurr, const double& xNext, const double& UNext)
+{
+    double numerator = -this->beta*UNext;
+
+    double denominator=-this->beta*UCurr;
+
+    double ratio = std::exp(numerator - denominator);
+
+    return std::min(1.0, ratio);
+
+}

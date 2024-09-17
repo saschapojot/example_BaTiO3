@@ -212,24 +212,24 @@ public:
     {
         this->json2Coefs(coefsInStr);
 
-        this->gamma11_val=B11_val/4.0;
-        this->gamma12_val=B12_val/8.0;
-        this->gamma44_val=B44_val/8.0;
+        this->gamma11_val = B11_val / 4.0;
+        this->gamma12_val = B12_val / 8.0;
+        this->gamma44_val = B44_val / 8.0;
 
-        B211_val=B100_val;
-        B322_val=B100_val;
+        B211_val = B100_val;
+        B322_val = B100_val;
 
-        B122_val=B111_val;
-        B200_val=B111_val;
-        B222_val=B111_val;
-        B300_val=B111_val;
-        B311_val=B111_val;
+        B122_val = B111_val;
+        B200_val = B111_val;
+        B222_val = B111_val;
+        B300_val = B111_val;
+        B311_val = B111_val;
 
-        B421_val=B412_val;
-        B502_val=B412_val;
-        B520_val=B412_val;
-        B601_val=B412_val;
-        B610_val=B412_val;
+        B421_val = B412_val;
+        B502_val = B412_val;
+        B520_val = B412_val;
+        B601_val = B412_val;
+        B610_val = B412_val;
 
         u0 = std::shared_ptr<double[]>(new double[elemNumTot_u], std::default_delete<double[]>());
         u1 = std::shared_ptr<double[]>(new double[elemNumTot_u], std::default_delete<double[]>());
@@ -237,7 +237,7 @@ public:
 
         ptr2_u0u1u2 = std::shared_ptr<std::shared_ptr<double[]>[]>(new std::shared_ptr<double[]>[3]{u0, u1, u2});
 
-        R_hat=std::shared_ptr<double[]>(new double[3], std::default_delete<double[]>());
+        R_hat = std::shared_ptr<double[]>(new double[3], std::default_delete<double[]>());
 
         int QElemNum = static_cast<int>(std::pow(N, 6) * 9);
         Q = std::shared_ptr<double[]>(new double[QElemNum], std::default_delete<double[]>());
@@ -253,14 +253,15 @@ public:
             << ", B4yz=" << B4yz_val << ", ZStar=" << ZStar_val << ", epsilon_infty=" << epsilon_infty
             << ", xi_Ba=" << xi_Ba << ", xi_Ti=" << xi_Ti << ", xi_O_parallel=" << xi_O_parallel
             << ", xi_O_perpendicular=" << xi_O_perpendicular << ", N=" << N << ", lambda=" << lambda
-            <<", gamma11_val="<<gamma11_val<<", gamma12_val="<<gamma12_val<<", gamma44_val="<<gamma44_val
-            <<", B100_val="<<B100_val<<", B211_val="<<B211_val<<", B322_val"<<B322_val
-            <<", B111_val="<<B111_val<<", B122_val="<<B122_val<<", B200_val"<<B200_val
-            <<", B222_val="<<B222_val<<", B300_val="<<B300_val<<", B311_val"<<B311_val
-            <<", B412_val="<<B412_val<<", B421_val="<<B421_val<<", B502_val="<<B502_val
-            <<", B520_val="<<B520_val<<", B601_val="<<B601_val<<", B610_val="<<B610_val
+            << ", gamma11_val=" << gamma11_val << ", gamma12_val=" << gamma12_val << ", gamma44_val=" << gamma44_val
+            << ", B100_val=" << B100_val << ", B211_val=" << B211_val << ", B322_val" << B322_val
+            << ", B111_val=" << B111_val << ", B122_val=" << B122_val << ", B200_val" << B200_val
+            << ", B222_val=" << B222_val << ", B300_val=" << B300_val << ", B311_val" << B311_val
+            << ", B412_val=" << B412_val << ", B421_val=" << B421_val << ", B502_val=" << B502_val
+            << ", B520_val=" << B520_val << ", B601_val=" << B601_val << ", B610_val=" << B610_val
             << std::endl;
     }
+
     ///potential energy
     double operator()(const std::shared_ptr<double[]>& eta_H, const std::shared_ptr<double[]>& v0,
                       const std::shared_ptr<double[]>& v1, const std::shared_ptr<double[]>& v2) override
@@ -276,13 +277,17 @@ public:
         double energy_dipole = E_dpl();
         std::cout << "energy_dipole=" << energy_dipole << std::endl;
 
-        double energy_short=E_short();
-        std::cout<<"energy_short="<<energy_short<<std::endl;
+        double energy_short = E_short();
+        std::cout << "energy_short=" << energy_short << std::endl;
 
-        double energy_elas=E_elas(eta_H,v0,v1,v2);
-        std::cout<<"energy_elas="<<energy_elas<<std::endl;
+        double energy_elas = E_elas(eta_H, v0, v1, v2);
+        std::cout << "energy_elas=" << energy_elas << std::endl;
 
-        return 0;
+        double energy_elas_mode_int=E_elas_mode_int(eta_H,v0,v1,v2);
+        std::cout<<"energy_elas_mode_int="<<energy_elas_mode_int<<std::endl;
+
+        double pot_energy=energy_self+energy_dipole+energy_short+energy_elas+energy_elas_mode_int;
+        return pot_energy;
     }
 
     void v2u(const std::shared_ptr<double[]>& v, std::shared_ptr<double[]>& u)
@@ -489,17 +494,16 @@ public:
 
     double E_short()
     {
-        double energy_short_1NN=E_short_1NN();
+        double energy_short_1NN = E_short_1NN();
         // std::cout<<"energy_short_1NN="<<energy_short_1NN<<std::endl;
 
-        double energy_short_2NN=E_short_2NN();
+        double energy_short_2NN = E_short_2NN();
         // std::cout<<"energy_short_2NN="<<energy_short_2NN<<std::endl;
 
-        double energy_short_3NN=E_short_3NN();
+        double energy_short_3NN = E_short_3NN();
         // std::cout<<"energy_short_3NN="<<energy_short_3NN<<std::endl;
 
-        return energy_short_1NN+energy_short_2NN+energy_short_3NN;
-
+        return energy_short_1NN + energy_short_2NN + energy_short_3NN;
     }
 
     //short-range energy, 1NN term
@@ -554,268 +558,254 @@ public:
             } //end n1
         } //end n0
 
-        double val3 = 0 ;//term 1NN3
+        double val3 = 0; //term 1NN3
 
         for (int n0 = 0; n0 < N; n0++)
         {
             for (int n1 = 0; n1 < N; n1++)
             {
-
-                for(int n2=0;n2<N;n2++)
+                for (int n2 = 0; n2 < N; n2++)
                 {
-                    for(int alpha=0;alpha<3;alpha++)
+                    for (int alpha = 0; alpha < 3; alpha++)
                     {
                         int ind_u_left = n0 * N * N + n1 * N + n2;
-                        int ind_u_right=((n0+1)%N)*N*N+n1*N+n2;
+                        int ind_u_right = ((n0 + 1) % N) * N * N + n1 * N + n2;
 
                         std::shared_ptr<double[]> u_left_ptr = ptr2_u0u1u2[alpha];
 
-                        std::shared_ptr<double[]>u_right_ptr=ptr2_u0u1u2[alpha];
+                        std::shared_ptr<double[]> u_right_ptr = ptr2_u0u1u2[alpha];
 
-                        double elem_left=u_left_ptr[ind_u_left];
-                        double elem_right=u_right_ptr[ind_u_right];
+                        double elem_left = u_left_ptr[ind_u_left];
+                        double elem_right = u_right_ptr[ind_u_right];
 
-                        val3+=j2_val*elem_left*elem_right;
-
-
-
-                    }//end alpha
-                }//end n2
+                        val3 += j2_val * elem_left * elem_right;
+                    } //end alpha
+                } //end n2
             } //end n1
         } //end n0
 
-        return val1+val2+val3;
+        return val1 + val2 + val3;
     } //end E_short_1NN
 
     double E_short_2NN()
     {
-
-
-
-    double val1=0;//term 2NN1
-        for(int alpha=0;alpha<3;alpha++)
+        double val1 = 0; //term 2NN1
+        for (int alpha = 0; alpha < 3; alpha++)
         {
-            for(int beta=0;beta<3;beta++)
+            for (int beta = 0; beta < 3; beta++)
             {
-                for(int n0=0;n0<N;n0++)
+                for (int n0 = 0; n0 < N; n0++)
                 {
-                    for(int n1=0;n1<N;n1++)
+                    for (int n1 = 0; n1 < N; n1++)
                     {
-                        for(int n2=0;n2<N;n2++)
+                        for (int n2 = 0; n2 < N; n2++)
                         {
-                            for(int m1: {python_mod(n1-1,N),python_mod(n1+1,N)})
+                            for (int m1 : {python_mod(n1 - 1, N), python_mod(n1 + 1, N)})
                             {
-                                for(int m2:{python_mod(n2-1,N),python_mod(n2+1,N)})
+                                for (int m2 : {python_mod(n2 - 1, N), python_mod(n2 + 1, N)})
                                 {
                                     std::shared_ptr<double[]> u_left_ptr = ptr2_u0u1u2[alpha];
-                                    std::shared_ptr<double[]> u_right_ptr=ptr2_u0u1u2[beta];
+                                    std::shared_ptr<double[]> u_right_ptr = ptr2_u0u1u2[beta];
 
 
-                                    int m0=n0;
-                                    int left_ind=n0*N*N+n1*N+n2;
-                                    int right_ind=m0*N*N+m1*N+m2;
+                                    int m0 = n0;
+                                    int left_ind = n0 * N * N + n1 * N + n2;
+                                    int right_ind = m0 * N * N + m1 * N + m2;
 
-                                    double elem_left=u_left_ptr[left_ind];
-                                    double elem_right=u_right_ptr[right_ind];
+                                    double elem_left = u_left_ptr[left_ind];
+                                    double elem_right = u_right_ptr[right_ind];
 
-                                    R_hat[0]=0.0;
+                                    R_hat[0] = 0.0;
 
-                                    double m1_double=static_cast<double>(m1);
-                                    double n1_double =static_cast<double>(n1);
+                                    double m1_double = static_cast<double>(m1);
+                                    double n1_double = static_cast<double>(n1);
 
-                                    double m2_double=static_cast<double>(m2);
-                                    double n2_double=static_cast<double>(n2);
+                                    double m2_double = static_cast<double>(m2);
+                                    double n2_double = static_cast<double>(n2);
 
-                                    R_hat[1]=(m1_double-n1_double)/std::sqrt(2.0);
-                                    R_hat[2]=(m2_double-n2_double)/std::sqrt(2.0);
+                                    R_hat[1] = (m1_double - n1_double) / std::sqrt(2.0);
+                                    R_hat[2] = (m2_double - n2_double) / std::sqrt(2.0);
 
-                                    double J=(j4_val+std::sqrt(2.0)*(j3_val-j4_val)*std::abs(R_hat[alpha]))*delta(alpha,beta)
-                                            +2.0*j5_val*R_hat[alpha]*R_hat[beta]*(1-delta(alpha,beta));
+                                    double J = (j4_val + std::sqrt(2.0) * (j3_val - j4_val) * std::abs(R_hat[alpha])) *
+                                        delta(alpha, beta)
+                                        + 2.0 * j5_val * R_hat[alpha] * R_hat[beta] * (1 - delta(alpha, beta));
 
-                                    val1+=J*elem_left*elem_right;
+                                    val1 += J * elem_left * elem_right;
+                                } //end m2
+                            } //end m1
+                        } //end n2
+                    } //end n1
+                } //end n0
+            } //end beta
+        } //end alpha
 
-                                }//end m2
-                            }//end m1
-
-                        }//end n2
-                    }//end n1
-                }//end n0
-            }//end beta
-        }//end alpha
-
-        val1*=0.5;
+        val1 *= 0.5;
 
 
-        double val2=0;//term 2NN2
+        double val2 = 0; //term 2NN2
 
-        for(int alpha=0;alpha<3;alpha++)
+        for (int alpha = 0; alpha < 3; alpha++)
         {
-            for(int beta=0;beta<3;beta++)
+            for (int beta = 0; beta < 3; beta++)
             {
-                for(int n0=0;n0<N;n0++)
+                for (int n0 = 0; n0 < N; n0++)
                 {
-                    for(int n1=0;n1<N;n1++)
+                    for (int n1 = 0; n1 < N; n1++)
                     {
-                        for(int n2=0;n2<N;n2++)
+                        for (int n2 = 0; n2 < N; n2++)
                         {
-                            for(int m0 : {python_mod(n0-1,N),python_mod(n0+1,N)})
+                            for (int m0 : {python_mod(n0 - 1, N), python_mod(n0 + 1, N)})
                             {
-                                for(int m2 : {python_mod(n2-1,N),python_mod(n2+1,N)})
+                                for (int m2 : {python_mod(n2 - 1, N), python_mod(n2 + 1, N)})
                                 {
                                     std::shared_ptr<double[]> u_left_ptr = ptr2_u0u1u2[alpha];
-                                    std::shared_ptr<double[]> u_right_ptr=ptr2_u0u1u2[beta];
+                                    std::shared_ptr<double[]> u_right_ptr = ptr2_u0u1u2[beta];
 
-                                    int m1=n1;
-                                    int left_ind=n0*N*N+n1*N+n2;
-                                    int right_ind=m0*N*N+m1*N+m2;
+                                    int m1 = n1;
+                                    int left_ind = n0 * N * N + n1 * N + n2;
+                                    int right_ind = m0 * N * N + m1 * N + m2;
 
-                                    double elem_left=u_left_ptr[left_ind];
-                                    double elem_right=u_right_ptr[right_ind];
+                                    double elem_left = u_left_ptr[left_ind];
+                                    double elem_right = u_right_ptr[right_ind];
 
-                                    double m0_double=static_cast<double>(m0);
-                                    double n0_double=static_cast<double>(n0);
-                                    double m2_double=static_cast<double>(m2);
-                                    double n2_double=static_cast<double>(n2);
+                                    double m0_double = static_cast<double>(m0);
+                                    double n0_double = static_cast<double>(n0);
+                                    double m2_double = static_cast<double>(m2);
+                                    double n2_double = static_cast<double>(n2);
 
-                                    R_hat[0]=(m0_double-n0_double)/std::sqrt(2.0);
-                                    R_hat[1]=0.0;
-                                    R_hat[2]=(m2_double-n2_double)/std::sqrt(2.0);
+                                    R_hat[0] = (m0_double - n0_double) / std::sqrt(2.0);
+                                    R_hat[1] = 0.0;
+                                    R_hat[2] = (m2_double - n2_double) / std::sqrt(2.0);
 
-                                    double J=(j4_val+std::sqrt(2.0)*(j3_val-j4_val)*std::abs(R_hat[alpha]))*delta(alpha,beta)
-                                           +2.0*j5_val*R_hat[alpha]*R_hat[beta]*(1-delta(alpha,beta));
+                                    double J = (j4_val + std::sqrt(2.0) * (j3_val - j4_val) * std::abs(R_hat[alpha])) *
+                                        delta(alpha, beta)
+                                        + 2.0 * j5_val * R_hat[alpha] * R_hat[beta] * (1 - delta(alpha, beta));
 
-                                    val2+=J*elem_left*elem_right;
+                                    val2 += J * elem_left * elem_right;
+                                } //end m2
+                            } //end m0
+                        } //end n2
+                    } //end n1
+                } //end n0
+            } //end beta
+        } //end alpha
 
-
-
-
-
-                                }//end m2
-                            }//end m0
-                        }//end n2
-                    }//end n1
-                }//end n0
-            }//end beta
-        }//end alpha
-
-        val2*=0.5;
+        val2 *= 0.5;
 
 
-        double val3=0;//term 2NN3
-        for(int alpha=0;alpha<3;alpha++)
+        double val3 = 0; //term 2NN3
+        for (int alpha = 0; alpha < 3; alpha++)
         {
-            for(int beta=0;beta<3;beta++)
+            for (int beta = 0; beta < 3; beta++)
             {
-                for(int n0=0;n0<N;n0++)
+                for (int n0 = 0; n0 < N; n0++)
                 {
-                    for(int n1=0;n1<N;n1++)
+                    for (int n1 = 0; n1 < N; n1++)
                     {
-                        for(int n2=0;n2<N;n2++)
+                        for (int n2 = 0; n2 < N; n2++)
                         {
-                            for(int m0:{python_mod(n0-1,N),python_mod(n0+1,N)})
+                            for (int m0 : {python_mod(n0 - 1, N), python_mod(n0 + 1, N)})
                             {
-                                for(int m1:{python_mod(n1-1,N),python_mod(n1+1,N)})
+                                for (int m1 : {python_mod(n1 - 1, N), python_mod(n1 + 1, N)})
                                 {
                                     std::shared_ptr<double[]> u_left_ptr = ptr2_u0u1u2[alpha];
-                                    std::shared_ptr<double[]> u_right_ptr=ptr2_u0u1u2[beta];
+                                    std::shared_ptr<double[]> u_right_ptr = ptr2_u0u1u2[beta];
 
-                                    int m2=n2;
-                                    int left_ind=n0*N*N+n1*N+n2;
-                                    int right_ind=m0*N*N+m1*N+m2;
+                                    int m2 = n2;
+                                    int left_ind = n0 * N * N + n1 * N + n2;
+                                    int right_ind = m0 * N * N + m1 * N + m2;
 
-                                    double elem_left=u_left_ptr[left_ind];
-                                    double elem_right=u_right_ptr[right_ind];
+                                    double elem_left = u_left_ptr[left_ind];
+                                    double elem_right = u_right_ptr[right_ind];
 
-                                    double m0_double=static_cast<double>(m0);
-                                    double n0_double=static_cast<double>(n0);
-                                    double m1_double=static_cast<double>(m1);
-                                    double n1_double=static_cast<double>(n1);
+                                    double m0_double = static_cast<double>(m0);
+                                    double n0_double = static_cast<double>(n0);
+                                    double m1_double = static_cast<double>(m1);
+                                    double n1_double = static_cast<double>(n1);
 
-                                    R_hat[0]=(m0_double-n0_double)/std::sqrt(2.0);
-                                    R_hat[1]=(m1_double-n1_double)/std::sqrt(2.0);
-                                    R_hat[2]=0.0;
+                                    R_hat[0] = (m0_double - n0_double) / std::sqrt(2.0);
+                                    R_hat[1] = (m1_double - n1_double) / std::sqrt(2.0);
+                                    R_hat[2] = 0.0;
 
-                                    double J=(j4_val+std::sqrt(2.0)*(j3_val-j4_val)*std::abs(R_hat[alpha]))*delta(alpha,beta)
-                                           +2.0*j5_val*R_hat[alpha]*R_hat[beta]*(1-delta(alpha,beta));
+                                    double J = (j4_val + std::sqrt(2.0) * (j3_val - j4_val) * std::abs(R_hat[alpha])) *
+                                        delta(alpha, beta)
+                                        + 2.0 * j5_val * R_hat[alpha] * R_hat[beta] * (1 - delta(alpha, beta));
 
 
-                                    val3+=J*elem_left*elem_right;
-                                }//end m1
-                            }//end m0
-                        }//end n2
-                    }//end n1
-                }//end n0
-            }//end beta
+                                    val3 += J * elem_left * elem_right;
+                                } //end m1
+                            } //end m0
+                        } //end n2
+                    } //end n1
+                } //end n0
+            } //end beta
+        } //end alpha
 
-        }//end alpha
+        val3 *= 0.5;
 
-        val3*=0.5;
-
-        return val1+val2+val3;
-
-    }//end E_short_2NN
+        return val1 + val2 + val3;
+    } //end E_short_2NN
 
 
     double E_short_3NN()
     {
-     double val=0;
+        double val = 0;
 
-        for(int alpha=0;alpha<3;alpha++)
+        for (int alpha = 0; alpha < 3; alpha++)
         {
-            for(int beta=0;beta<3;beta++)
+            for (int beta = 0; beta < 3; beta++)
             {
-                for(int n0=0;n0<N;n0++)
+                for (int n0 = 0; n0 < N; n0++)
                 {
-                    for(int n1=0;n1<N;n1++)
+                    for (int n1 = 0; n1 < N; n1++)
                     {
-                        for(int n2=0;n2<N;n2++)
+                        for (int n2 = 0; n2 < N; n2++)
                         {
-                            for(int m0 : {python_mod(n0-1,N),python_mod(n0+1,N)})
+                            for (int m0 : {python_mod(n0 - 1, N), python_mod(n0 + 1, N)})
                             {
-                                for(int m1:{python_mod(n1-1,N),python_mod(n1+1,N)})
+                                for (int m1 : {python_mod(n1 - 1, N), python_mod(n1 + 1, N)})
                                 {
-                                    for(int m2:{python_mod(n2-1,N),python_mod(n2+1,N)})
+                                    for (int m2 : {python_mod(n2 - 1, N), python_mod(n2 + 1, N)})
                                     {
                                         std::shared_ptr<double[]> u_left_ptr = ptr2_u0u1u2[alpha];
-                                        std::shared_ptr<double[]> u_right_ptr=ptr2_u0u1u2[beta];
-                                        int left_ind=n0*N*N+n1*N+n2;
-                                        int right_ind=m0*N*N+m1*N+m2;
+                                        std::shared_ptr<double[]> u_right_ptr = ptr2_u0u1u2[beta];
+                                        int left_ind = n0 * N * N + n1 * N + n2;
+                                        int right_ind = m0 * N * N + m1 * N + m2;
 
-                                        double elem_left=u_left_ptr[left_ind];
-                                        double elem_right=u_right_ptr[right_ind];
+                                        double elem_left = u_left_ptr[left_ind];
+                                        double elem_right = u_right_ptr[right_ind];
 
-                                        double m0_double=static_cast<double>(m0);
-                                        double n0_double=static_cast<double>(n0);
-                                        double m1_double=static_cast<double>(m1);
-                                        double n1_double=static_cast<double>(n1);
-                                        double m2_double=static_cast<double>(m2);
-                                        double n2_double=static_cast<double>(n2);
+                                        double m0_double = static_cast<double>(m0);
+                                        double n0_double = static_cast<double>(n0);
+                                        double m1_double = static_cast<double>(m1);
+                                        double n1_double = static_cast<double>(n1);
+                                        double m2_double = static_cast<double>(m2);
+                                        double n2_double = static_cast<double>(n2);
 
-                                        R_hat[0]=(m0_double-n0_double)/std::sqrt(3.0);
-                                        R_hat[1]=(m1_double-n1_double)/std::sqrt(3.0);
-                                        R_hat[2]=(m2_double-n2_double)/std::sqrt(3.0);
+                                        R_hat[0] = (m0_double - n0_double) / std::sqrt(3.0);
+                                        R_hat[1] = (m1_double - n1_double) / std::sqrt(3.0);
+                                        R_hat[2] = (m2_double - n2_double) / std::sqrt(3.0);
 
-                                        double J=j6_val*delta(alpha,beta)+3.0*j7_val*R_hat[alpha]*R_hat[beta]*(1-delta(alpha,beta));
-                                        val+=J*elem_left*elem_right;
-
-                                    }//end m2
-                                }//end m1
-                            }//end m0
-                        }//end n2
-                    }//end n1
-                }//end n0
-            }//end beta
-        }//end alpha
-        val*=0.5;
+                                        double J = j6_val * delta(alpha, beta) + 3.0 * j7_val * R_hat[alpha] * R_hat[
+                                            beta] * (1 - delta(alpha, beta));
+                                        val += J * elem_left * elem_right;
+                                    } //end m2
+                                } //end m1
+                            } //end m0
+                        } //end n2
+                    } //end n1
+                } //end n0
+            } //end beta
+        } //end alpha
+        val *= 0.5;
 
         return val;
-
-    }//end E_short_3NN
+    } //end E_short_3NN
 
     ///delta function
-    double delta(const int &i,const int &j)
+    double delta(const int& i, const int& j)
     {
-        if(i==j)
+        if (i == j)
         {
             return 1.0;
         }
@@ -825,317 +815,347 @@ public:
         }
     }
 
-    int python_mod(int a, int M) {
+    int python_mod(int a, int M)
+    {
         return (a % M + M) % M;
     }
 
 
-
     //elastic energy
 
-    double E_elas(const std::shared_ptr<double[]>& eta_H,const std::shared_ptr<double[]>& v0,
-                      const std::shared_ptr<double[]>& v1, const std::shared_ptr<double[]>& v2)
+    double E_elas(const std::shared_ptr<double[]>& eta_H, const std::shared_ptr<double[]>& v0,
+                  const std::shared_ptr<double[]>& v1, const std::shared_ptr<double[]>& v2)
     {
         //homogeneous part
 
-        double eta_H1=eta_H[0];
-        double eta_H2=eta_H[1];
-        double eta_H3=eta_H[2];
+        double eta_H1 = eta_H[0];
+        double eta_H2 = eta_H[1];
+        double eta_H3 = eta_H[2];
 
-        double eta_H4=eta_H[3];
-        double eta_H5=eta_H[4];
-        double eta_H6=eta_H[5];
+        double eta_H4 = eta_H[3];
+        double eta_H5 = eta_H[4];
+        double eta_H6 = eta_H[5];
 
-        double N_double=static_cast<double>(N);
+        double N_double = static_cast<double>(N);
 
-        double homogeneous_part=0.5*std::pow(N_double,3)*B11_val*(std::pow(eta_H1,2)+std::pow(eta_H2,2)+std::pow(eta_H3,2))
-                               +std::pow(N_double,3)*B12_val*(eta_H1*eta_H2+eta_H2*eta_H3+eta_H3*eta_H1)
-                                +0.5*std::pow(N_double,3)*B44_val*(std::pow(eta_H4,2)+std::pow(eta_H5,2)+std::pow(eta_H6,2));
+        double homogeneous_part = 0.5 * std::pow(N_double, 3) * B11_val * (std::pow(eta_H1, 2) + std::pow(eta_H2, 2) +
+                std::pow(eta_H3, 2))
+            + std::pow(N_double, 3) * B12_val * (eta_H1 * eta_H2 + eta_H2 * eta_H3 + eta_H3 * eta_H1)
+            + 0.5 * std::pow(N_double, 3) * B44_val * (std::pow(eta_H4, 2) + std::pow(eta_H5, 2) + std::pow(eta_H6, 2));
 
 
-//index: Ba=0, Ti=1, O1=2, O2=3,O3=4
+        //index: Ba=0, Ti=1, O1=2, O2=3,O3=4
 
-//inhomogeneous part
-        double E_elas_I1=0;
-        for(int i=0;i<N;i++)
+        //inhomogeneous part
+        double E_elas_I1 = 0;
+        for (int i = 0; i < N; i++)
         {
-            for(int j=0;j<N;j++)
+            for (int j = 0; j < N; j++)
             {
-                for(int k=0;k<N;k++)
+                for (int k = 0; k < N; k++)
                 {
-                    int i_plus_1=python_mod(i+1,N);
-                    int i_minus_1=python_mod(i-1,N);
-                    int j_plus_1=python_mod(j+1,N);
-                    int j_minus_1=python_mod(j-1,N);
+                    int i_plus_1 = python_mod(i + 1, N);
+                    int i_minus_1 = python_mod(i - 1, N);
+                    int j_plus_1 = python_mod(j + 1, N);
+                    int j_minus_1 = python_mod(j - 1, N);
 
-                    int ind_Ba=0;
+                    int ind_Ba = 0;
 
-                    int ijk_Ba=flattened_ind_for_E_elas(i,j,k,ind_Ba);
+                    int ijk_Ba = flattened_ind_for_E_elas(i, j, k, ind_Ba);
 
-                    int iPlus1jk_Ba=flattened_ind_for_E_elas(i_plus_1,j,k,ind_Ba);
-                    int iMinus1jk_Ba=flattened_ind_for_E_elas(i_minus_1,j,k,ind_Ba);
+                    int iPlus1jk_Ba = flattened_ind_for_E_elas(i_plus_1, j, k, ind_Ba);
+                    int iMinus1jk_Ba = flattened_ind_for_E_elas(i_minus_1, j, k, ind_Ba);
 
-                    int ijPlus1k_Ba=flattened_ind_for_E_elas(i,j_plus_1,k,ind_Ba);
-                    int ijMinus1k_Ba=flattened_ind_for_E_elas(i,j_minus_1,k,ind_Ba);
+                    int ijPlus1k_Ba = flattened_ind_for_E_elas(i, j_plus_1, k, ind_Ba);
+                    int ijMinus1k_Ba = flattened_ind_for_E_elas(i, j_minus_1, k, ind_Ba);
 
 
                     //row 1
-                    E_elas_I1+=gamma11_val*std::pow(v0[ijk_Ba]-v0[iPlus1jk_Ba],2);
+                    E_elas_I1 += gamma11_val * std::pow(v0[ijk_Ba] - v0[iPlus1jk_Ba], 2);
 
                     //row2
-                    E_elas_I1+=gamma11_val*std::pow(v0[ijk_Ba]-v0[iMinus1jk_Ba],2);
+                    E_elas_I1 += gamma11_val * std::pow(v0[ijk_Ba] - v0[iMinus1jk_Ba], 2);
 
                     //row 3
-                    E_elas_I1+=gamma12_val*(v0[ijk_Ba]-v0[iPlus1jk_Ba])*(v1[ijk_Ba]-v1[ijPlus1k_Ba]);
+                    E_elas_I1 += gamma12_val * (v0[ijk_Ba] - v0[iPlus1jk_Ba]) * (v1[ijk_Ba] - v1[ijPlus1k_Ba]);
 
                     //row 4
-                    E_elas_I1+=gamma12_val*(v0[ijk_Ba]-v0[iMinus1jk_Ba])*(v1[ijk_Ba]-v1[ijMinus1k_Ba]);
+                    E_elas_I1 += gamma12_val * (v0[ijk_Ba] - v0[iMinus1jk_Ba]) * (v1[ijk_Ba] - v1[ijMinus1k_Ba]);
 
 
                     //row 5
-                    E_elas_I1+=gamma44_val*std::pow(v0[ijk_Ba]-v0[ijPlus1k_Ba]+v1[ijk_Ba]-v1[iPlus1jk_Ba],2);
+                    E_elas_I1 += gamma44_val * std::pow(v0[ijk_Ba] - v0[ijPlus1k_Ba] + v1[ijk_Ba] - v1[iPlus1jk_Ba], 2);
 
                     //row 6
-                    E_elas_I1+=gamma44_val*std::pow(v0[ijk_Ba]-v0[ijMinus1k_Ba]+v1[ijk_Ba]-v1[iMinus1jk_Ba],2);
+                    E_elas_I1 += gamma44_val * std::pow(v0[ijk_Ba] - v0[ijMinus1k_Ba] + v1[ijk_Ba] - v1[iMinus1jk_Ba],
+                                                        2);
+                } //end k
+            } //end j
+        } //end i
 
-                }//end k
-            }//end j
-        }//end i
-
-        double E_elas_I2=0;
-        for(int i=0;i<N;i++)
+        double E_elas_I2 = 0;
+        for (int i = 0; i < N; i++)
         {
-            for(int j=0;j<N;j++)
+            for (int j = 0; j < N; j++)
             {
-                for(int k=0;k<N;k++)
+                for (int k = 0; k < N; k++)
                 {
-                    int i_plus_1=python_mod(i+1,N);
-                    int i_minus_1=python_mod(i-1,N);
+                    int i_plus_1 = python_mod(i + 1, N);
+                    int i_minus_1 = python_mod(i - 1, N);
 
-                    int k_plus_1=python_mod(k+1,N);
-                    int k_minus_1=python_mod(k-1,N);
+                    int k_plus_1 = python_mod(k + 1, N);
+                    int k_minus_1 = python_mod(k - 1, N);
 
-                    int ind_Ba=0;
+                    int ind_Ba = 0;
 
-                    int ijk_Ba=flattened_ind_for_E_elas(i,j,k,ind_Ba);
+                    int ijk_Ba = flattened_ind_for_E_elas(i, j, k, ind_Ba);
 
-                    int ij_kPlus1=flattened_ind_for_E_elas(i,j,k_plus_1,ind_Ba);
-                    int ij_kMinus1=flattened_ind_for_E_elas(i,j,k_minus_1,ind_Ba);
+                    int ij_kPlus1 = flattened_ind_for_E_elas(i, j, k_plus_1, ind_Ba);
+                    int ij_kMinus1 = flattened_ind_for_E_elas(i, j, k_minus_1, ind_Ba);
 
-                    int iPlus1_jk=flattened_ind_for_E_elas(i_plus_1,j,k,ind_Ba);
-                    int iMinus1_jk=flattened_ind_for_E_elas(i_minus_1,j,k,ind_Ba);
+                    int iPlus1_jk = flattened_ind_for_E_elas(i_plus_1, j, k, ind_Ba);
+                    int iMinus1_jk = flattened_ind_for_E_elas(i_minus_1, j, k, ind_Ba);
 
                     //row 1
-                    E_elas_I2+=gamma11_val*std::pow(v2[ijk_Ba]-v2[ij_kPlus1],2);
+                    E_elas_I2 += gamma11_val * std::pow(v2[ijk_Ba] - v2[ij_kPlus1], 2);
 
                     //row 2
-                    E_elas_I2+=gamma11_val*std::pow(v2[ijk_Ba]-v2[ij_kMinus1],2);
+                    E_elas_I2 += gamma11_val * std::pow(v2[ijk_Ba] - v2[ij_kMinus1], 2);
 
                     //row 3
-                    E_elas_I2+=gamma12_val*(v2[ijk_Ba]-v2[ij_kPlus1])*(v0[ijk_Ba]-v0[iPlus1_jk]);
+                    E_elas_I2 += gamma12_val * (v2[ijk_Ba] - v2[ij_kPlus1]) * (v0[ijk_Ba] - v0[iPlus1_jk]);
 
                     //row 4
-                    E_elas_I2+=gamma12_val*(v2[ijk_Ba]-v2[ij_kMinus1])*(v0[ijk_Ba]-v0[iMinus1_jk]);
+                    E_elas_I2 += gamma12_val * (v2[ijk_Ba] - v2[ij_kMinus1]) * (v0[ijk_Ba] - v0[iMinus1_jk]);
 
                     //row 5
-                    E_elas_I2+=gamma44_val*std::pow(v2[ijk_Ba]-v2[iPlus1_jk]+v0[ijk_Ba]-v0[ij_kPlus1],2);
+                    E_elas_I2 += gamma44_val * std::pow(v2[ijk_Ba] - v2[iPlus1_jk] + v0[ijk_Ba] - v0[ij_kPlus1], 2);
 
                     //row 6
-                    E_elas_I2+=gamma44_val*std::pow(v2[ijk_Ba]-v2[iMinus1_jk]+v0[ijk_Ba]-v0[ij_kMinus1],2);
-                }//end k
-            }//end j
-        }//end i
-    double E_elas_I3=0;
-        for(int i=0;i<N;i++)
+                    E_elas_I2 += gamma44_val * std::pow(v2[ijk_Ba] - v2[iMinus1_jk] + v0[ijk_Ba] - v0[ij_kMinus1], 2);
+                } //end k
+            } //end j
+        } //end i
+        double E_elas_I3 = 0;
+        for (int i = 0; i < N; i++)
         {
-            for(int j=0;j<N;j++)
+            for (int j = 0; j < N; j++)
             {
-                for(int k=0;k<N;k++)
+                for (int k = 0; k < N; k++)
                 {
-                    int j_plus_1=python_mod(j+1,N);
-                    int j_minus_1=python_mod(j-1,N);
+                    int j_plus_1 = python_mod(j + 1, N);
+                    int j_minus_1 = python_mod(j - 1, N);
 
-                    int k_plus_1=python_mod(k+1,N);
-                    int k_minus_1=python_mod(k-1,N);
+                    int k_plus_1 = python_mod(k + 1, N);
+                    int k_minus_1 = python_mod(k - 1, N);
 
-                    int ind_Ba=0;
+                    int ind_Ba = 0;
 
-                    int ijk_Ba=flattened_ind_for_E_elas(i,j,k,ind_Ba);
+                    int ijk_Ba = flattened_ind_for_E_elas(i, j, k, ind_Ba);
 
-                    int i_jPlus1_k=flattened_ind_for_E_elas(i,j_plus_1,k,ind_Ba);
-                    int i_jMinus1_k=flattened_ind_for_E_elas(i,j_minus_1,k,ind_Ba);
+                    int i_jPlus1_k = flattened_ind_for_E_elas(i, j_plus_1, k, ind_Ba);
+                    int i_jMinus1_k = flattened_ind_for_E_elas(i, j_minus_1, k, ind_Ba);
 
-                    int ij_kPlus1=flattened_ind_for_E_elas(i,j,k_plus_1,ind_Ba);
-                    int ij_kMinus1=flattened_ind_for_E_elas(i,j,k_minus_1,ind_Ba);
+                    int ij_kPlus1 = flattened_ind_for_E_elas(i, j, k_plus_1, ind_Ba);
+                    int ij_kMinus1 = flattened_ind_for_E_elas(i, j, k_minus_1, ind_Ba);
 
                     //row 1
-                    E_elas_I3+=gamma11_val*std::pow(v1[ijk_Ba]-v1[i_jPlus1_k],2);
+                    E_elas_I3 += gamma11_val * std::pow(v1[ijk_Ba] - v1[i_jPlus1_k], 2);
 
                     //row 2
-                    E_elas_I3+=gamma11_val*std::pow(v1[ijk_Ba]-v1[i_jMinus1_k],2);
+                    E_elas_I3 += gamma11_val * std::pow(v1[ijk_Ba] - v1[i_jMinus1_k], 2);
 
                     //row 3
-                    E_elas_I3+=gamma12_val*(v1[ijk_Ba]-v1[i_jPlus1_k])*(v2[ijk_Ba]-v2[ij_kPlus1]);
+                    E_elas_I3 += gamma12_val * (v1[ijk_Ba] - v1[i_jPlus1_k]) * (v2[ijk_Ba] - v2[ij_kPlus1]);
 
                     //row 4
-                    E_elas_I3+=gamma12_val*(v1[ijk_Ba]-v1[i_jMinus1_k])*(v2[ijk_Ba]-v2[ij_kMinus1]);
+                    E_elas_I3 += gamma12_val * (v1[ijk_Ba] - v1[i_jMinus1_k]) * (v2[ijk_Ba] - v2[ij_kMinus1]);
 
                     // row 5
-                    E_elas_I3+=gamma44_val*std::pow(v1[ijk_Ba]-v1[ij_kPlus1]+v2[ijk_Ba]-v2[i_jPlus1_k],2);
+                    E_elas_I3 += gamma44_val * std::pow(v1[ijk_Ba] - v1[ij_kPlus1] + v2[ijk_Ba] - v2[i_jPlus1_k], 2);
 
                     //row 6
-                    E_elas_I3+=gamma44_val*std::pow(v1[ijk_Ba]-v1[ij_kMinus1]+v2[ijk_Ba]-v2[i_jMinus1_k],2);
+                    E_elas_I3 += gamma44_val * std::pow(v1[ijk_Ba] - v1[ij_kMinus1] + v2[ijk_Ba] - v2[i_jMinus1_k], 2);
+                } //end k
+            } //end j
+        } //end i
 
-                }//end k
-            }//end j
-        }//end i
+        return homogeneous_part + E_elas_I1 + E_elas_I2 + E_elas_I3;
+    } //end E_elas
 
-        return homogeneous_part+ E_elas_I1+E_elas_I2+E_elas_I3;
-    }//end E_elas
-
-    int flattened_ind_for_E_elas(const int &i,const int& j, const int &k, const int& q)
+    int flattened_ind_for_E_elas(const int& i, const int& j, const int& k, const int& q)
     {
         //i,j,k take values from 0 to N1, q takes values from 0 to 4
-        int ind=q+5*k+5*j*N+5*i*N*N;
+        int ind = q + 5 * k + 5 * j * N + 5 * i * N * N;
 
         return ind;
     }
 
 
-    double E_elas_mode_int(const std::shared_ptr<double[]>& eta_H,const std::shared_ptr<double[]>& v0,
-                      const std::shared_ptr<double[]>& v1, const std::shared_ptr<double[]>& v2)
+    double E_elas_mode_int(const std::shared_ptr<double[]>& eta_H, const std::shared_ptr<double[]>& v0,
+                           const std::shared_ptr<double[]>& v1, const std::shared_ptr<double[]>& v2)
     {
-
-
-        double val=0;
+        double val = 0;
         //homogeneous part
 
-        double eta_H1=eta_H[0];
-        double eta_H2=eta_H[1];
-        double eta_H3=eta_H[2];
+        double eta_H1 = eta_H[0];
+        double eta_H2 = eta_H[1];
+        double eta_H3 = eta_H[2];
 
-        double eta_H4=eta_H[3];
-        double eta_H5=eta_H[4];
-        double eta_H6=eta_H[5];
+        double eta_H4 = eta_H[3];
+        double eta_H5 = eta_H[4];
+        double eta_H6 = eta_H[5];
 
-        for(int i=0;i<N;i++)
+        for (int i = 0; i < N; i++)
         {
-            for(int j=0;j<N;j++)
+            for (int j = 0; j < N; j++)
             {
-                for(int k=0;k<N;k++)
+                for (int k = 0; k < N; k++)
                 {
-                    int i_minus_1=python_mod(i-1,N);
-                    int j_minus_1=python_mod(j-1,N);
-                    int k_minus_1=python_mod(k-1,N);
-                    int ind_Ba=0;
+                    int i_minus_1 = python_mod(i - 1, N);
+                    int j_minus_1 = python_mod(j - 1, N);
+                    int k_minus_1 = python_mod(k - 1, N);
+                    int ind_Ba = 0;
 
                     //i,j,k
-                    int ijk=flattened_ind_for_E_elas(i,j,k,ind_Ba);
+                    int ijk = flattened_ind_for_E_elas(i, j, k, ind_Ba);
 
                     //i-1,j,k
-                    int iMinus1_jk=flattened_ind_for_E_elas_mode_int(i_minus_1,j,k,ind_Ba);
+                    int iMinus1_jk = flattened_ind_for_E_elas_mode_int(i_minus_1, j, k, ind_Ba);
 
 
                     //i-1,j-1,k
-                    int iMinus1_jMinus1_k=flattened_ind_for_E_elas(i_minus_1,j_minus_1,k,ind_Ba);
+                    int iMinus1_jMinus1_k = flattened_ind_for_E_elas(i_minus_1, j_minus_1, k, ind_Ba);
 
                     //i,j-1,k
-                    int i_jMinus1_k=flattened_ind_for_E_elas(i,j_minus_1,k,ind_Ba);
+                    int i_jMinus1_k = flattened_ind_for_E_elas(i, j_minus_1, k, ind_Ba);
 
                     //i-1,j,k-1
-                    int iMinus1_j_kMinus1=flattened_ind_for_E_elas(i_minus_1,j,k_minus_1,ind_Ba);
+                    int iMinus1_j_kMinus1 = flattened_ind_for_E_elas(i_minus_1, j, k_minus_1, ind_Ba);
 
                     //i,j,k-1
-                    int ij_kMinus1=flattened_ind_for_E_elas(i,j,k_minus_1,ind_Ba);
+                    int ij_kMinus1 = flattened_ind_for_E_elas(i, j, k_minus_1, ind_Ba);
 
                     //i-1,j-1,k-1
-                    int iMinus1_jMinus1_kMinus1=flattened_ind_for_E_elas(i_minus_1,j_minus_1,k_minus_1,ind_Ba);
+                    int iMinus1_jMinus1_kMinus1 = flattened_ind_for_E_elas(i_minus_1, j_minus_1, k_minus_1, ind_Ba);
 
                     //i,j-1,k-1
-                    int i_jMinus1_kMinus1=flattened_ind_for_E_elas(i,j_minus_1,k_minus_1,ind_Ba);
+                    int i_jMinus1_kMinus1 = flattened_ind_for_E_elas(i, j_minus_1, k_minus_1, ind_Ba);
 
-                    double Delta_vxx_ijk=v0[iMinus1_jk]-v0[ijk]
-                                        +v0[iMinus1_jMinus1_k]-v0[i_jMinus1_k]
-                                        + v0[iMinus1_j_kMinus1]-v0[ij_kMinus1]
-                                        +v0[iMinus1_jMinus1_kMinus1]-v0[i_jMinus1_kMinus1];
+                    double Delta_vxx_ijk = v0[iMinus1_jk] - v0[ijk]
+                        + v0[iMinus1_jMinus1_k] - v0[i_jMinus1_k]
+                        + v0[iMinus1_j_kMinus1] - v0[ij_kMinus1]
+                        + v0[iMinus1_jMinus1_kMinus1] - v0[i_jMinus1_kMinus1];
 
-                    double etaI1ijk=Delta_vxx_ijk/4.0;
+                    double etaI1ijk = Delta_vxx_ijk / 4.0;
 
-                    double Delta_vyy_ijk=v1[i_jMinus1_k]-v1[ijk]
-                                        +v1[i_jMinus1_kMinus1]-v1[ij_kMinus1]
-                                        +v1[iMinus1_jMinus1_k]-v1[iMinus1_jk]
-                                        +v1[iMinus1_jMinus1_kMinus1]-v1[iMinus1_j_kMinus1];
-                    double etaI2ijk=Delta_vyy_ijk/4.0;
-
-
-
-                    double Delta_vzz_ijk=v2[ij_kMinus1]-v2[ijk]
-                                        +v2[iMinus1_j_kMinus1]-v2[iMinus1_jk]
-                                        +v2[i_jMinus1_kMinus1]-v2[i_jMinus1_k]
-                                        +v2[iMinus1_jMinus1_kMinus1]-v2[iMinus1_jMinus1_k];
-
-                    double etaI3ijk=Delta_vzz_ijk/4.0;
-
-                    double Delta_vxy_ijk=v1[iMinus1_jk]-v1[ijk]
-                                        + v1[iMinus1_jMinus1_k]-v1[i_jMinus1_k]
-                                        + v1[iMinus1_j_kMinus1]-v1[ij_kMinus1]
-                                        + v1[iMinus1_jMinus1_kMinus1]-v1[iMinus1_jMinus1_k];
+                    double Delta_vyy_ijk = v1[i_jMinus1_k] - v1[ijk]
+                        + v1[i_jMinus1_kMinus1] - v1[ij_kMinus1]
+                        + v1[iMinus1_jMinus1_k] - v1[iMinus1_jk]
+                        + v1[iMinus1_jMinus1_kMinus1] - v1[iMinus1_j_kMinus1];
+                    double etaI2ijk = Delta_vyy_ijk / 4.0;
 
 
-                    double Delta_vyx_ijk=v0[i_jMinus1_k]-v0[ijk]
-                                        + v0[iMinus1_jMinus1_k]-v0[iMinus1_jk]
-                                        + v0[i_jMinus1_kMinus1]-v0[ij_kMinus1]
-                                        + v0[iMinus1_jMinus1_kMinus1] -v0[iMinus1_jMinus1_k];
+                    double Delta_vzz_ijk = v2[ij_kMinus1] - v2[ijk]
+                        + v2[iMinus1_j_kMinus1] - v2[iMinus1_jk]
+                        + v2[i_jMinus1_kMinus1] - v2[i_jMinus1_k]
+                        + v2[iMinus1_jMinus1_kMinus1] - v2[iMinus1_jMinus1_k];
 
-                    double etaI6ijk=(Delta_vxy_ijk+Delta_vyx_ijk)/4.0;
+                    double etaI3ijk = Delta_vzz_ijk / 4.0;
 
-
-
-                    double Delta_vzx_ijk=v0[ij_kMinus1]-v0[ijk]
-                                        + v0[iMinus1_j_kMinus1]-v0[iMinus1_jk]
-                                        + v0[i_jMinus1_kMinus1]-v0[i_jMinus1_k]
-                                        + v0[iMinus1_jMinus1_kMinus1]- v0[iMinus1_j_kMinus1];
+                    double Delta_vxy_ijk = v1[iMinus1_jk] - v1[ijk]
+                        + v1[iMinus1_jMinus1_k] - v1[i_jMinus1_k]
+                        + v1[iMinus1_j_kMinus1] - v1[ij_kMinus1]
+                        + v1[iMinus1_jMinus1_kMinus1] - v1[iMinus1_jMinus1_k];
 
 
-                    double Delta_vxz_ijk=v2[iMinus1_jk]-v2[ijk]
-                                        + v2[iMinus1_j_kMinus1] -v2[ij_kMinus1]
-                                        + v2[iMinus1_jMinus1_k] -v2[i_jMinus1_k]
-                                        + v2[iMinus1_jMinus1_kMinus1] -v2[iMinus1_j_kMinus1];
+                    double Delta_vyx_ijk = v0[i_jMinus1_k] - v0[ijk]
+                        + v0[iMinus1_jMinus1_k] - v0[iMinus1_jk]
+                        + v0[i_jMinus1_kMinus1] - v0[ij_kMinus1]
+                        + v0[iMinus1_jMinus1_kMinus1] - v0[iMinus1_jMinus1_k];
 
-                    double etaI5ijk=(Delta_vzx_ijk+Delta_vxz_ijk)/4.0;
-
-
-                    double Delta_vyz_ijk=v2[i_jMinus1_k] -v2[ijk]
-                                        + v2[i_jMinus1_kMinus1]-v2[ij_kMinus1]
-                                        + v2[iMinus1_jMinus1_k] -v2[iMinus1_jk]
-                                        + v2[iMinus1_jMinus1_kMinus1] -v2[i_jMinus1_kMinus1];
+                    double etaI6ijk = (Delta_vxy_ijk + Delta_vyx_ijk) / 4.0;
 
 
-                    double Delta_vzy_ijk=v1[ij_kMinus1] -v1[ijk]
-                                        + v1[i_jMinus1_kMinus1] -v1[i_jMinus1_k]
-                                        + v1[iMinus1_j_kMinus1]-v1[iMinus1_jk]
-                                        + v1[iMinus1_jMinus1_kMinus1] -v1[i_jMinus1_kMinus1];
-
-                    double etaI4ijk=(Delta_vyz_ijk+Delta_vzy_ijk)/4.0;
+                    double Delta_vzx_ijk = v0[ij_kMinus1] - v0[ijk]
+                        + v0[iMinus1_j_kMinus1] - v0[iMinus1_jk]
+                        + v0[i_jMinus1_kMinus1] - v0[i_jMinus1_k]
+                        + v0[iMinus1_jMinus1_kMinus1] - v0[iMinus1_j_kMinus1];
 
 
+                    double Delta_vxz_ijk = v2[iMinus1_jk] - v2[ijk]
+                        + v2[iMinus1_j_kMinus1] - v2[ij_kMinus1]
+                        + v2[iMinus1_jMinus1_k] - v2[i_jMinus1_k]
+                        + v2[iMinus1_jMinus1_kMinus1] - v2[iMinus1_j_kMinus1];
+
+                    double etaI5ijk = (Delta_vzx_ijk + Delta_vxz_ijk) / 4.0;
 
 
-                }//end k
-            }//end j
+                    double Delta_vyz_ijk = v2[i_jMinus1_k] - v2[ijk]
+                        + v2[i_jMinus1_kMinus1] - v2[ij_kMinus1]
+                        + v2[iMinus1_jMinus1_k] - v2[iMinus1_jk]
+                        + v2[iMinus1_jMinus1_kMinus1] - v2[i_jMinus1_kMinus1];
 
-        }//end i
+
+                    double Delta_vzy_ijk = v1[ij_kMinus1] - v1[ijk]
+                        + v1[i_jMinus1_kMinus1] - v1[i_jMinus1_k]
+                        + v1[iMinus1_j_kMinus1] - v1[iMinus1_jk]
+                        + v1[iMinus1_jMinus1_kMinus1] - v1[i_jMinus1_kMinus1];
+
+                    double etaI4ijk = (Delta_vyz_ijk + Delta_vzy_ijk) / 4.0;
 
 
-    }
+                    int u_ind_ijk = i * N * N + j * N + k;
 
-    int flattened_ind_for_E_elas_mode_int(const int &i,const int& j, const int &k, const int& q)
+                    double E_int_ijk = 0;
+
+                    E_int_ijk += B100_val * etaI1ijk * u0[u_ind_ijk] * u0[u_ind_ijk];
+
+                    E_int_ijk += B111_val * etaI1ijk * u1[u_ind_ijk] * u1[u_ind_ijk];
+
+                    E_int_ijk += B122_val * etaI1ijk * u2[u_ind_ijk] * u2[u_ind_ijk];
+
+                    E_int_ijk += B200_val * etaI2ijk * u0[u_ind_ijk] * u0[u_ind_ijk];
+
+                    E_int_ijk += B211_val * etaI2ijk * u1[u_ind_ijk] * u1[u_ind_ijk];
+
+                    E_int_ijk += B222_val * etaI2ijk * u2[u_ind_ijk] * u2[u_ind_ijk];
+
+                    E_int_ijk += B300_val * etaI3ijk * u0[u_ind_ijk] * u0[u_ind_ijk];
+
+                    E_int_ijk += B311_val * etaI3ijk * u1[u_ind_ijk] * u1[u_ind_ijk];
+
+                    E_int_ijk += B322_val * etaI3ijk * u2[u_ind_ijk] * u2[u_ind_ijk];
+
+                    E_int_ijk += B412_val * etaI4ijk * u1[u_ind_ijk] * u2[u_ind_ijk];
+
+                    E_int_ijk += B421_val * etaI4ijk * u2[u_ind_ijk] * u1[u_ind_ijk];
+
+                    E_int_ijk += B502_val * etaI5ijk * u0[u_ind_ijk] * u2[u_ind_ijk];
+
+                    E_int_ijk += B520_val * etaI5ijk * u2[u_ind_ijk] * u0[u_ind_ijk];
+
+                    E_int_ijk += B601_val * etaI6ijk * u0[u_ind_ijk] * u1[u_ind_ijk];
+
+                    E_int_ijk += B610_val * etaI6ijk * u1[u_ind_ijk] * u0[u_ind_ijk];
+
+
+                    val += 0.5 * E_int_ijk;
+                } //end k
+            } //end j
+        } //end i
+
+        return val;
+    } //end E_elas_mode_int
+
+    int flattened_ind_for_E_elas_mode_int(const int& i, const int& j, const int& k, const int& q)
     {
         //i,j,k take values from 0 to N1, q takes values from 0 to 4
-        int ind=q+5*k+5*j*N+5*i*N*N;
+        int ind = q + 5 * k + 5 * j * N + 5 * i * N * N;
 
         return ind;
     }
+
 public:
     std::string coefsInStr;
     double kappa2_val;
@@ -1155,12 +1175,12 @@ public:
     double gamma12_val;
     double gamma44_val;
 
-    double B100_val,B111_val,B122_val;
-    double B200_val,B211_val,B222_val;
-    double B300_val,B311_val,B322_val;
-    double B412_val,B421_val;
-    double B502_val,B520_val;
-    double B601_val,B610_val;
+    double B100_val, B111_val, B122_val;
+    double B200_val, B211_val, B222_val;
+    double B300_val, B311_val, B322_val;
+    double B412_val, B421_val;
+    double B502_val, B520_val;
+    double B601_val, B610_val;
 
     double B1xx_val;
     double B1yy_val;
@@ -1184,7 +1204,6 @@ public:
     std::shared_ptr<std::shared_ptr<double[]>[]> ptr2_u0u1u2;
 
     std::shared_ptr<double[]> R_hat;
-
 };
 
 
