@@ -10,7 +10,7 @@ int main(int argc, char *argv[]) {
 //    std::cout << "numThreads=" << numThreads << std::endl;
     auto mcObj=mc_computation(std::string(argv[1]));
     // mcObj.init_and_run();
-    int N=2;
+
 
 
 

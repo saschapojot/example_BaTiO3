@@ -88,7 +88,11 @@ flushLastFile=loadedJsonData["flushLastFile"]
 
 
 lambdaStr=jsonDataFromConf["lambda"]
-coefsStr=jsonDataFromConf["coefs"]+","+str(N)+","+lambdaStr
+B100Str=jsonDataFromConf["B100"]
+B111Str=jsonDataFromConf["B111"]
+B412Str=jsonDataFromConf["B412"]
+
+coefsStr=jsonDataFromConf["coefs"]+","+str(N)+","+lambdaStr+","+B100Str+","+B111Str+","+B412Str
 newFlushNum=jsonFromSummary["newFlushNum"]
 TDirRoot=jsonFromSummary["TDirRoot"]
 U_dist_dataDir=jsonFromSummary["U_dist_dataDir"]

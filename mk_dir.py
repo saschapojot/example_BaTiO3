@@ -35,6 +35,10 @@ B1xx_val= -2.18
 B1yy_val= -0.20
 B4yz_val= -0.08
 
+B100=4.64
+B111=-0.2
+B412=-0.08
+
 # dipole
 
 ZStar_val= 9.956
@@ -137,7 +141,13 @@ def contents_to_conf(k):
         "\n",
         "sweep_multiple=100\n",
         "\n",
-        "lambda="+str(1/N*0.2)
+        "lambda="+str(1/N*0.2)+"\n",
+        "\n",
+        "B100="+format_using_decimal(B100)+"\n",
+        "\n",
+        "B111="+format_using_decimal(B111)+"\n",
+        "\n",
+        "B412="+format_using_decimal(B412)+"\n"
 
 
 

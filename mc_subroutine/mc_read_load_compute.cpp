@@ -102,13 +102,15 @@ double mc_computation::generate_nearby_normal(const double & x,const double &sig
 
 }
 
-
-void mc_computation::proposal(const double &xCurr, double &xNext)
+void mc_computation::proposal(const std::shared_ptr<double[]> & vecCurr,std::shared_ptr<double[]>&vecNext,const int&pos, const int &vecLength)
 {
+    double elem_next=generate_nearby_normal(vecCurr[pos],h);
 
-
-    xNext=generate_nearby_normal(xCurr,h);
+    std::memcpy(vecNext.get(),vecCurr.get(),vecLength*sizeof(double));
+    vecNext[pos]=elem_next;
 }
+
+
 
 double mc_computation::acceptanceRatio(const double &xCurr, const double&UCurr, const double& xNext, const double& UNext)
 {
@@ -119,5 +121,31 @@ double mc_computation::acceptanceRatio(const double &xCurr, const double&UCurr, 
     double ratio = std::exp(numerator - denominator);
 
     return std::min(1.0, ratio);
+
+}
+
+
+void mc_computation::execute_mc_one_sweep(std::shared_ptr<double[]>& v0_Curr,std::shared_ptr<double[]>&v1_Curr,std::shared_ptr<double[]>&v2_Curr,
+        std::shared_ptr<double[]>& eta_H_Curr,double &UCurr,
+        std::shared_ptr<double[]>&v0_Next,std::shared_ptr<double[]>& v1_Next, std::shared_ptr<double[]>&v2_Next,std::shared_ptr<double[]>&eta_H_Next
+        ,const int &fls, const int& swp)
+{
+
+    //next U
+    double UNext;
+
+    //first update eta_H
+
+    for(int j=0;j<6;j++)
+    {
+
+        int pos_eta_H=randint_0_5(e2);
+        double eta_H_elem_Curr=eta_H_Curr[pos_eta_H];
+        double eta_H_elem_Next;
+
+    }
+
+
+
 
 }

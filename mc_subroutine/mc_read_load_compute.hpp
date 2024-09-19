@@ -169,8 +169,37 @@ public:
         this->potFuncPtr = createPotentialFunction(potFuncName, coefsToPotFunc);
         potFuncPtr->init();
 
+        //allocate memory for data
+        try
+        {
+            this->v0_data_ptr=std::shared_ptr<double[]>(new double[sweepToWrite * elemNumTot_v],
+                                                        std::default_delete<double[]>());
+            this->v1_data_ptr=std::shared_ptr<double[]>(new double[sweepToWrite * elemNumTot_v],
+                                                        std::default_delete<double[]>());
+
+            this->v2_data_ptr=std::shared_ptr<double[]>(new double[sweepToWrite * elemNumTot_v],
+                                                        std::default_delete<double[]>());
+            this->eta_H_data_ptr=std::shared_ptr<double[]>(new double[sweepToWrite * 6],
+                                                        std::default_delete<double[]>());
+            this->U_data_ptr=std::shared_ptr<double[]>(new double[sweepToWrite ],
+                                                        std::default_delete<double[]>());
+        }
+        catch (const std::bad_alloc &e) {
+            std::cerr << "Memory allocation error: " << e.what() << std::endl;
+            std::exit(2);
+        } catch (const std::exception &e) {
+            std::cerr << "Exception: " << e.what() << std::endl;
+            std::exit(2);
+        }
+
+
+        randint_0_N_minus1=std::uniform_int_distribution<int>(0,N-1);
+        // std::cout<<"randint_0_N_minus1(e2)="<<randint_0_N_minus1(e2)<<std::endl;
+        randint_0_5=std::uniform_int_distribution<int>(0,5);
+        // std::cout<<"randint_0_5(e2)="<<randint_0_5(e2)<<std::endl;
+
         std::cout<<"sweepToWrite="<<sweepToWrite<<std::endl;
-        std::cout<<"mcNum_1sweep="<<mcNum_1sweep<<std::endl;
+        // std::cout<<"mcNum_1sweep="<<mcNum_1sweep<<std::endl;
         std::cout<<"newFlushNum="<<newFlushNum<<std::endl;
         std::cout<<"flushLastFile+1="<<flushLastFile+1<<std::endl;
         std::cout<<"TDirRoot="<<TDirRoot<<std::endl;
@@ -187,10 +216,15 @@ public:
 
     double generate_nearby_normal(const double & x,const double &sigma);
 
-    void proposal(const double &xCurr, double &xNext);
+    void proposal(const std::shared_ptr<double[]> & vecCurr,std::shared_ptr<double[]>&vecNext,const int&pos, const int &vecLength);
 
     double acceptanceRatio(const double &xCurr, const double&UCurr, const double& xNext, const double& UNext);
 
+
+    void execute_mc_one_sweep(std::shared_ptr<double[]>& v0_Curr,std::shared_ptr<double[]>&v1_Curr,std::shared_ptr<double[]>&v2_Curr,
+        std::shared_ptr<double[]>& eta_H_Curr,double &UCurr,
+        std::shared_ptr<double[]>&v0_Next,std::shared_ptr<double[]>& v1_Next, std::shared_ptr<double[]>&v2_Next,std::shared_ptr<double[]>&eta_H_Next
+        ,const int &fls, const int& swp);
     /// load data by flushNum
     /// @param flushNum
     void load_data(const int& flushNum);
@@ -234,16 +268,29 @@ public:
     std::string coefsToPotFunc;
     std::string potFuncName;
 
-    int mcNum_1sweep;
+    // int mcNum_1sweep;
     std::ranlux24_base e2;
     std::uniform_real_distribution<> distUnif01;
-    std::uniform_int_distribution<int> dist0_2N_minus1;
+    std::uniform_int_distribution<int> randint_0_N_minus1;//to update v's ijk
+    std::uniform_int_distribution<int> randint_0_5;//to update eta_H and each atom for v
     int sweep_multiple;
 
+    //initial value
     std::shared_ptr<double[]> v0_init;
     std::shared_ptr<double[]> v1_init;
     std::shared_ptr<double[]> v2_init;
     std::shared_ptr<double[]> eta_H_init;
+
+    //data
+
+
+
+    std::shared_ptr<double[]> v0_data_ptr;
+    std::shared_ptr<double[]>v1_data_ptr;
+    std::shared_ptr<double[]>v2_data_ptr;
+    std::shared_ptr<double[]>eta_H_data_ptr;
+
+    std::shared_ptr<double[]>U_data_ptr;
 
 };
 
