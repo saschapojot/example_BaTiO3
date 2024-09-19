@@ -985,7 +985,7 @@ public:
 
     int flattened_ind_for_E_elas(const int& i, const int& j, const int& k, const int& q)
     {
-        //i,j,k take values from 0 to N1, q takes values from 0 to 4
+        //i,j,k take values from 0 to N-1, q takes values from 0 to 4
         int ind = q + 5 * k + 5 * j * N + 5 * i * N * N;
 
         return ind;

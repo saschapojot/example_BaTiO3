@@ -84,6 +84,7 @@ public:
 
                 eta_H_init=std::shared_ptr<double[]>(new double[6], std::default_delete<double[]>());
 
+
                 paramCounter++;
                 continue;
 
@@ -195,6 +196,7 @@ public:
 
         randint_0_N_minus1=std::uniform_int_distribution<int>(0,N-1);
         // std::cout<<"randint_0_N_minus1(e2)="<<randint_0_N_minus1(e2)<<std::endl;
+        elemNumTot_eta_H=6;
         randint_0_5=std::uniform_int_distribution<int>(0,5);
         // std::cout<<"randint_0_5(e2)="<<randint_0_5(e2)<<std::endl;
 
@@ -204,6 +206,28 @@ public:
         std::cout<<"flushLastFile+1="<<flushLastFile+1<<std::endl;
         std::cout<<"TDirRoot="<<TDirRoot<<std::endl;
         std::cout<<"U_dist_dataDir="<<U_dist_dataDir<<std::endl;
+        this->out_U_path=this->U_dist_dataDir+"/U/";
+        if (!fs::is_directory(out_U_path) || !fs::exists(out_U_path)) {
+            fs::create_directories(out_U_path);
+        }
+
+        this->out_eta_H_path=this->U_dist_dataDir+"/eta_H/";
+        if (!fs::is_directory(out_eta_H_path) || !fs::exists(out_eta_H_path)) {
+            fs::create_directories(out_eta_H_path);
+        }
+
+        this->out_v0_path=this->U_dist_dataDir+"/v0/";
+        if (!fs::is_directory(out_v0_path) || !fs::exists(out_v0_path)) {
+            fs::create_directories(out_v0_path);
+        }
+        this->out_v1_path=this->U_dist_dataDir+"/v1/";
+        if (!fs::is_directory(out_v1_path) || !fs::exists(out_v1_path)) {
+            fs::create_directories(out_v1_path);
+        }
+        this->out_v2_path=this->U_dist_dataDir+"/v2/";
+        if (!fs::is_directory(out_v2_path) || !fs::exists(out_v2_path)) {
+            fs::create_directories(out_v2_path);
+        }
 
 
 
@@ -218,18 +242,21 @@ public:
 
     void proposal(const std::shared_ptr<double[]> & vecCurr,std::shared_ptr<double[]>&vecNext,const int&pos, const int &vecLength);
 
-    double acceptanceRatio(const double &xCurr, const double&UCurr, const double& xNext, const double& UNext);
+    double acceptanceRatio( const double&UCurr, const double& UNext);
 
-
+    int flattened_ind_for_v(const int& i, const int& j, const int& k, const int& q);
     void execute_mc_one_sweep(std::shared_ptr<double[]>& v0_Curr,std::shared_ptr<double[]>&v1_Curr,std::shared_ptr<double[]>&v2_Curr,
         std::shared_ptr<double[]>& eta_H_Curr,double &UCurr,
         std::shared_ptr<double[]>&v0_Next,std::shared_ptr<double[]>& v1_Next, std::shared_ptr<double[]>&v2_Next,std::shared_ptr<double[]>&eta_H_Next
         ,const int &fls, const int& swp);
-    /// load data by flushNum
-    /// @param flushNum
-    void load_data(const int& flushNum);
 
-    void load_pickle_data(const std::string& filename, std::shared_ptr<double[]> data_ptr, std::size_t size);
+    void execute_mc(const std::shared_ptr<double[]>& v0Vec,const std::shared_ptr<double[]>& v1Vec, const std::shared_ptr<double[]>& v2Vec,const std::shared_ptr<double[]>& eta_HVec,const int & sweepInit, const int & flushNum);
+
+    void init_and_run();
+
+
+    void save_array_to_pickle(double *ptr,const int& size,const std::string& filename);
+    void load_pickle_data(const std::string& filename, std::shared_ptr<double[]>& data_ptr, std::size_t size);
     template<class T>
     void print_shared_ptr(const std::shared_ptr<T> &ptr,const int& size){
         if (!ptr) {
@@ -261,6 +288,7 @@ public:
     int N;
     int elemNumTot_u;
     int elemNumTot_v;
+    int elemNumTot_eta_H;
 
     const double kB=1.380649e-23;
     const double Eh_unit=4.35974e-18;
@@ -291,6 +319,12 @@ public:
     std::shared_ptr<double[]>eta_H_data_ptr;
 
     std::shared_ptr<double[]>U_data_ptr;
+
+    std::string out_U_path;
+    std::string out_eta_H_path;
+    std::string out_v0_path;
+    std::string out_v1_path;
+    std::string out_v2_path;
 
 };
 

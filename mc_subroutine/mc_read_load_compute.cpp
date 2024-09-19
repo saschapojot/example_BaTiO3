@@ -4,7 +4,7 @@
 
 #include "mc_read_load_compute.hpp"
 
-void mc_computation::load_pickle_data(const std::string& filename, std::shared_ptr<double[]> data_ptr, std::size_t size)
+void mc_computation::load_pickle_data(const std::string& filename, std::shared_ptr<double[]>& data_ptr, std::size_t size)
 {
 
     // Initialize Python and NumPy
@@ -112,7 +112,7 @@ void mc_computation::proposal(const std::shared_ptr<double[]> & vecCurr,std::sha
 
 
 
-double mc_computation::acceptanceRatio(const double &xCurr, const double&UCurr, const double& xNext, const double& UNext)
+double mc_computation::acceptanceRatio( const double&UCurr, const double& UNext)
 {
     double numerator = -this->beta*UNext;
 
@@ -132,19 +132,224 @@ void mc_computation::execute_mc_one_sweep(std::shared_ptr<double[]>& v0_Curr,std
 {
 
     //next U
+
     double UNext;
 
     //first update eta_H
 
-    for(int j=0;j<6;j++)
+    for(int j=0;j<elemNumTot_eta_H;j++)
     {
 
         int pos_eta_H=randint_0_5(e2);
-        double eta_H_elem_Curr=eta_H_Curr[pos_eta_H];
-        double eta_H_elem_Next;
+        this->proposal(eta_H_Curr,eta_H_Next,pos_eta_H,elemNumTot_eta_H);
 
+        UCurr=(*potFuncPtr)(eta_H_Curr,v0_Curr,v1_Curr,v2_Curr);
+        UNext=(*potFuncPtr)(eta_H_Next,v0_Curr,v1_Curr,v2_Curr);
+
+        double r=this->acceptanceRatio(UCurr,UNext);
+        double u = distUnif01(e2);
+        if(u<=r){
+            UCurr=UNext;
+            std::memcpy(eta_H_Curr.get(),eta_H_Next.get(),elemNumTot_eta_H*sizeof(double));
+        }
+
+
+
+
+    }//end updating eta_H
+
+    //update v0
+    for(int l=0;l<elemNumTot_v;l++){
+        int i=randint_0_N_minus1(e2);
+        int j=randint_0_N_minus1(e2);
+        int k=randint_0_N_minus1(e2);
+        int q=randint_0_5(e2);
+        int ind= flattened_ind_for_v(i,j,k,q);
+
+        this->proposal(v0_Curr,v0_Next,ind,elemNumTot_v);
+        UCurr=(*potFuncPtr)(eta_H_Curr,v0_Curr,v1_Curr,v2_Curr);
+        UNext=(*potFuncPtr)(eta_H_Curr,v0_Next,v1_Curr,v2_Curr);
+        double r=this->acceptanceRatio(UCurr,UNext);
+        double u = distUnif01(e2);
+        if(u<=r){
+            UCurr=UNext;
+            std::memcpy(v0_Curr.get(),v0_Next.get(),elemNumTot_v*sizeof(double ));
+        }
+
+
+
+    }//end updating v0
+
+    //update v1
+    for(int l=0;l<elemNumTot_v;l++){
+        int i=randint_0_N_minus1(e2);
+        int j=randint_0_N_minus1(e2);
+        int k=randint_0_N_minus1(e2);
+        int q=randint_0_5(e2);
+        int ind= flattened_ind_for_v(i,j,k,q);
+        this->proposal(v1_Curr,v1_Next,ind,elemNumTot_v);
+        UCurr=(*potFuncPtr)(eta_H_Curr,v0_Curr,v1_Curr,v2_Curr);
+        UNext=(*potFuncPtr)(eta_H_Curr,v0_Curr,v1_Next,v2_Curr);
+        double r=this->acceptanceRatio(UCurr,UNext);
+        double u = distUnif01(e2);
+        if(u<=r) {
+            UCurr = UNext;
+            std::memcpy(v1_Curr.get(),v1_Next.get(),elemNumTot_v*sizeof(double ));
+        }
+
+    }//end updating v1
+
+
+//update v2
+for(int l=0;l<elemNumTot_v;l++){
+    int i=randint_0_N_minus1(e2);
+    int j=randint_0_N_minus1(e2);
+    int k=randint_0_N_minus1(e2);
+    int q=randint_0_5(e2);
+    int ind= flattened_ind_for_v(i,j,k,q);
+    this->proposal(v2_Curr,v2_Next,ind,elemNumTot_v);
+    UCurr=(*potFuncPtr)(eta_H_Curr,v0_Curr,v1_Curr,v2_Curr);
+    UNext=(*potFuncPtr)(eta_H_Curr,v0_Curr,v1_Curr,v2_Next);
+    double r=this->acceptanceRatio(UCurr,UNext);
+    double u = distUnif01(e2);
+    if(u<=r) {
+        UCurr = UNext;
+        std::memcpy(v2_Curr.get(),v2_Next.get(),elemNumTot_v*sizeof(double ));
     }
 
+}//end updating v1
+
+}
+
+
+int mc_computation::flattened_ind_for_v(const int& i, const int& j, const int& k, const int& q){
+    //i,j,k take values from 0 to N-1, q takes values from 0 to 4
+    int ind = q + 5 * k + 5 * j * N + 5 * i * N * N;
+
+    return ind;
+
+}
+
+
+void mc_computation::execute_mc(const std::shared_ptr<double[]>& v0Vec,const std::shared_ptr<double[]>& v1Vec, const std::shared_ptr<double[]>& v2Vec,const std::shared_ptr<double[]>& eta_HVec,const int & sweepInit, const int & flushNum){
+
+    std::shared_ptr<double[]> v0_Curr=std::shared_ptr<double[]>(new double[elemNumTot_v], std::default_delete<double[]>());
+    std::shared_ptr<double[]> v0_Next=std::shared_ptr<double[]>(new double[elemNumTot_v], std::default_delete<double[]>());
+    std::memcpy(v0_Curr.get(),v0Vec.get(),elemNumTot_v*sizeof(double ));
+
+    std::shared_ptr<double[]> v1_Curr=std::shared_ptr<double[]>(new double[elemNumTot_v], std::default_delete<double[]>());
+    std::shared_ptr<double[]> v1_Next=std::shared_ptr<double[]>(new double[elemNumTot_v], std::default_delete<double[]>());
+    std::memcpy(v1_Curr.get(),v1Vec.get(),elemNumTot_v*sizeof(double ));
+
+    std::shared_ptr<double[]> v2_Curr=std::shared_ptr<double[]>(new double[elemNumTot_v], std::default_delete<double[]>());
+    std::shared_ptr<double[]> v2_Next=std::shared_ptr<double[]>(new double[elemNumTot_v], std::default_delete<double[]>());
+    std::memcpy(v2_Curr.get(),v2Vec.get(),elemNumTot_v*sizeof(double ));
+
+    std::shared_ptr<double[]> eta_H_Curr=std::shared_ptr<double[]>(new double[elemNumTot_eta_H], std::default_delete<double[]>());
+    std::shared_ptr<double[]> eta_H_Next=std::shared_ptr<double[]>(new double[elemNumTot_eta_H], std::default_delete<double[]>());
+    std::memcpy(eta_H_Curr.get(),eta_HVec.get(),elemNumTot_eta_H*sizeof(double ));
+
+    int sweepStart = sweepInit;
+    double UCurr=0;
+    for (int fls = 0; fls < flushNum; fls++) {
+        const auto tMCStart{std::chrono::steady_clock::now()};
+
+        for (int swp = 0; swp < sweepToWrite*sweep_multiple; swp++) {
+            execute_mc_one_sweep(v0_Curr,v1_Curr,v2_Curr,eta_H_Curr,UCurr,v0_Next,v1_Next,v2_Next,eta_H_Next,fls,swp);
+            if(swp%sweep_multiple==0)
+            {
+                int swp_out=swp/sweep_multiple;
+                U_data_ptr[swp_out]=UCurr;
+                std::memcpy(v0_data_ptr.get()+swp_out*elemNumTot_v,v0_Curr.get(),elemNumTot_v*sizeof(double));
+                std::memcpy(v1_data_ptr.get()+swp_out*elemNumTot_v,v1_Curr.get(),elemNumTot_v*sizeof(double));
+                std::memcpy(v2_data_ptr.get()+swp_out*elemNumTot_v,v2_Curr.get(),elemNumTot_v*sizeof(double));
+                std::memcpy(eta_H_data_ptr.get()+swp_out*elemNumTot_eta_H,eta_H_Curr.get(),elemNumTot_eta_H*sizeof(double ));
+            }//end swp mod
+
+        }//end sweep for
+        int sweepEnd = sweepStart + sweepToWrite*sweep_multiple - 1;
+        std::string fileNameMiddle = "sweepStart" + std::to_string(sweepStart) + "sweepEnd" + std::to_string(sweepEnd);
+
+
+
+
+
+
+
+
+
+
+        std::string out_U_PickleFileName = out_U_path + fileNameMiddle + ".U.pkl";
+
+        std::string out_v0_PickleFileName=out_v0_path+fileNameMiddle+".v0.pkl";
+        std::string out_v1_PickleFileName=out_v1_path+fileNameMiddle+".v1.pkl";
+        std::string out_v2_PickleFileName=out_v2_path+fileNameMiddle+".v2.pkl";
+
+        std::string out_eta_H_PickleFileName=out_eta_H_path+fileNameMiddle+".eta_H.pkl";
+
+        save_array_to_pickle(U_data_ptr.get(),sweepToWrite,out_U_PickleFileName);
+
+        save_array_to_pickle(v0_data_ptr.get(),sweepToWrite * elemNumTot_v,out_v0_PickleFileName);
+        save_array_to_pickle(v1_data_ptr.get(),sweepToWrite * elemNumTot_v,out_v1_PickleFileName);
+        save_array_to_pickle(v2_data_ptr.get(),sweepToWrite * elemNumTot_v,out_v2_PickleFileName);
+
+        save_array_to_pickle(eta_H_data_ptr.get(),sweepToWrite * elemNumTot_eta_H,out_eta_H_PickleFileName);
+        const auto tMCEnd{std::chrono::steady_clock::now()};
+        const std::chrono::duration<double> elapsed_secondsAll{tMCEnd - tMCStart};
+        std::cout << "sweep " + std::to_string(sweepStart) + " to sweep " + std::to_string(sweepEnd) + ": "
+                  << elapsed_secondsAll.count() / 3600.0 << " h" << std::endl;
+        sweepStart = sweepEnd + 1;
+    }//end flush for loop
+    std::cout << "mc executed for " << flushNum << " flushes." << std::endl;
+
+}
+void mc_computation::save_array_to_pickle(double *ptr,const int& size,const std::string& filename){
+    using namespace boost::python;
+    try {
+        Py_Initialize();  // Initialize the Python interpreter
+        if (!Py_IsInitialized()) {
+            throw std::runtime_error("Failed to initialize Python interpreter");
+        }
+
+        // Debug output
+        //        std::cout << "Python interpreter initialized successfully." << std::endl;
+
+        // Import the pickle module
+        object pickle = import("pickle");
+        object pickle_dumps = pickle.attr("dumps");
+
+        // Create a Python list from the C++ array
+        list py_list;
+        for (std::size_t i = 0; i < size; i++) {
+            py_list.append(ptr[i]);
+        }
+
+        // Serialize the list using pickle.dumps
+        object serialized_array = pickle_dumps(py_list);
+
+        // Extract the serialized data as a string
+        std::string serialized_str = extract<std::string>(serialized_array);
+
+        // Write the serialized data to a file
+        std::ofstream file(filename, std::ios::binary);
+        if (!file) {
+            throw std::runtime_error("Failed to open file for writing");
+        }
+        file.write(serialized_str.data(), serialized_str.size());
+        file.close();
+
+        // Debug output
+        //        std::cout << "Array serialized and written to file successfully." << std::endl;
+    } catch (const error_already_set&) {
+        PyErr_Print();
+        std::cerr << "Boost.Python error occurred." << std::endl;
+    } catch (const std::exception& e) {
+        std::cerr << "Exception: " << e.what() << std::endl;
+    }
+
+    if (Py_IsInitialized()) {
+        Py_Finalize();  // Finalize the Python interpreter
+    }
 
 
 
