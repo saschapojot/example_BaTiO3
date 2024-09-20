@@ -36,7 +36,7 @@ if N<=0:
 pklFileList=[]
 flushEndAll=[]
 #assume that the v0, v1, v2, eta_H files are intact, we only check v0 directory
-for file in glob.glob(U_dist_dataDir+"/v0/*flushEnd(\d+).pkl"):
+for file in glob.glob(U_dist_dataDir+r"/v0/*flushEnd(\d+).v0.pkl"):
     pklFileList.append(file)
     matchEnd=re.search(r"flushEnd(\d+)",file)
     if matchEnd:

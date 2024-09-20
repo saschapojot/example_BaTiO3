@@ -166,7 +166,7 @@ public:
 
         }//end while
 
-        this->load_data(flushLastFile);
+        // this->load_data(flushLastFile);
         this->potFuncPtr = createPotentialFunction(potFuncName, coefsToPotFunc);
         potFuncPtr->init();
 
@@ -232,9 +232,10 @@ public:
 
 
 
+
         //check potential value
-       // double pot= (*potFuncPtr)(eta_H_init,v0_init,v1_init,v2_init);
-       //  std::cout<<"pot="<<pot<<std::endl;
+        // double pot= (*potFuncPtr)(eta_H_init,v0_init,v1_init,v2_init);
+        //  std::cout<<"pot="<<pot<<std::endl;
     }
 public:
 
@@ -250,13 +251,16 @@ public:
         std::shared_ptr<double[]>&v0_Next,std::shared_ptr<double[]>& v1_Next, std::shared_ptr<double[]>&v2_Next,std::shared_ptr<double[]>&eta_H_Next
         ,const int &fls, const int& swp);
 
-    void execute_mc(const std::shared_ptr<double[]>& v0Vec,const std::shared_ptr<double[]>& v1Vec, const std::shared_ptr<double[]>& v2Vec,const std::shared_ptr<double[]>& eta_HVec,const int & sweepInit, const int & flushNum);
+    void execute_mc(const std::shared_ptr<double[]>& v0Vec,const std::shared_ptr<double[]>& v1Vec, const std::shared_ptr<double[]>& v2Vec,const std::shared_ptr<double[]>& eta_HVec, const int & flushNum);
 
     void init_and_run();
 
 
     void save_array_to_pickle(double *ptr,const int& size,const std::string& filename);
     void load_pickle_data(const std::string& filename, std::shared_ptr<double[]>& data_ptr, std::size_t size);
+
+    void initialize_v0_v1_v2_eta_H();
+
     template<class T>
     void print_shared_ptr(const std::shared_ptr<T> &ptr,const int& size){
         if (!ptr) {

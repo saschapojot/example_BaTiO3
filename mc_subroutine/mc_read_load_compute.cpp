@@ -54,42 +54,45 @@ void mc_computation::load_pickle_data(const std::string& filename, std::shared_p
 }
 
 
-/// load data by flushNum
-/// @param flushNum
-    void mc_computation::load_data(const int& flushNum)
+
+
+void mc_computation::initialize_v0_v1_v2_eta_H()
+{
+    std::string name;
+    std::string eta_H_inFileName,v0_inFileName, v1_inFileName, v2_inFileName;
+    if(this->flushLastFile==-1)
     {
-        std::string name;
-    if (flushNum==-1)
-    {
-        name="init.pkl";
-    }else
-    {
-        name="flushEnd"+std::to_string(flushNum)+".pkl";
+       name= "init";
+        eta_H_inFileName=out_eta_H_path+"/eta_H_"+name+".pkl";
+        v0_inFileName=out_v0_path+"/v0_"+name+".pkl";
+        v1_inFileName=out_v1_path+"/v1_"+name+".pkl";
+        v2_inFileName=out_v2_path+"/v2_"+name+".pkl";
     }
-
-    //load v0
-
-    std::string v0FileName=U_dist_dataDir+"/v0/v0_"+name;
-
-    load_pickle_data(v0FileName,v0_init,elemNumTot_v);
-
-    // load v1
-    std::string v1FileName=U_dist_dataDir+"/v1/v1_"+name;
-    load_pickle_data(v1FileName,v1_init,elemNumTot_v);
-
-    //load v2
-    std::string v2FileName=U_dist_dataDir+"/v2/v2_"+name;
-    load_pickle_data(v2FileName,v2_init,elemNumTot_v);
+    else
+    {
+        name="flushEnd"+std::to_string(this->flushLastFile);
+        eta_H_inFileName=out_eta_H_path+"/"+name+".eta_H.pkl";
+        v0_inFileName=out_v0_path+"/"+name+".v0.pkl";
+        v1_inFileName=out_v1_path+"/"+name+".v1.pkl";
+        v2_inFileName=out_v2_path+"/"+name+".v2.pkl";
+    }
 
     //load eta_H
-    std::string eta_HFileName=U_dist_dataDir+"/eta_H/eta_H_"+name;
-    load_pickle_data(eta_HFileName,eta_H_init,elemNumTot_v);
+    this->load_pickle_data(eta_H_inFileName,eta_H_init,6);
+
+    //load v0
+    this->load_pickle_data(v0_inFileName,v0_init,elemNumTot_v);
+
+    //load v1
+    this->load_pickle_data(v1_inFileName,v1_init,elemNumTot_v);
+
+    //load v2
+    this->load_pickle_data(v2_inFileName,v2_init,elemNumTot_v);
 
 
 
-    }
 
-
+}
 
 double mc_computation::generate_nearby_normal(const double & x,const double &sigma)
 {
@@ -231,7 +234,7 @@ int mc_computation::flattened_ind_for_v(const int& i, const int& j, const int& k
 }
 
 
-void mc_computation::execute_mc(const std::shared_ptr<double[]>& v0Vec,const std::shared_ptr<double[]>& v1Vec, const std::shared_ptr<double[]>& v2Vec,const std::shared_ptr<double[]>& eta_HVec,const int & sweepInit, const int & flushNum){
+void mc_computation::execute_mc(const std::shared_ptr<double[]>& v0Vec,const std::shared_ptr<double[]>& v1Vec, const std::shared_ptr<double[]>& v2Vec,const std::shared_ptr<double[]>& eta_HVec, const int & flushNum){
 
     std::shared_ptr<double[]> v0_Curr=std::shared_ptr<double[]>(new double[elemNumTot_v], std::default_delete<double[]>());
     std::shared_ptr<double[]> v0_Next=std::shared_ptr<double[]>(new double[elemNumTot_v], std::default_delete<double[]>());
@@ -249,12 +252,16 @@ void mc_computation::execute_mc(const std::shared_ptr<double[]>& v0Vec,const std
     std::shared_ptr<double[]> eta_H_Next=std::shared_ptr<double[]>(new double[elemNumTot_eta_H], std::default_delete<double[]>());
     std::memcpy(eta_H_Curr.get(),eta_HVec.get(),elemNumTot_eta_H*sizeof(double ));
 
-    int sweepStart = sweepInit;
+    // int sweepStart = sweepInit;
     double UCurr=0;
+    int flushThisFileStart=this->flushLastFile+1;
+    int sweepStart =flushThisFileStart*sweepToWrite*sweep_multiple;
+
     for (int fls = 0; fls < flushNum; fls++) {
         const auto tMCStart{std::chrono::steady_clock::now()};
 
         for (int swp = 0; swp < sweepToWrite*sweep_multiple; swp++) {
+            // std::cout<<"swp="<<swp<<std::endl;
             execute_mc_one_sweep(v0_Curr,v1_Curr,v2_Curr,eta_H_Curr,UCurr,v0_Next,v1_Next,v2_Next,eta_H_Next,fls,swp);
             if(swp%sweep_multiple==0)
             {
@@ -268,24 +275,16 @@ void mc_computation::execute_mc(const std::shared_ptr<double[]>& v0Vec,const std
 
         }//end sweep for
         int sweepEnd = sweepStart + sweepToWrite*sweep_multiple - 1;
-        std::string fileNameMiddle = "sweepStart" + std::to_string(sweepStart) + "sweepEnd" + std::to_string(sweepEnd);
+        int flushEnd=flushThisFileStart+fls;
+        std::string fileNameMiddle =  "flushEnd" + std::to_string(flushEnd);
 
+        std::string out_U_PickleFileName = out_U_path+"/" + fileNameMiddle + ".U.pkl";
 
+        std::string out_v0_PickleFileName=out_v0_path+"/"+fileNameMiddle+".v0.pkl";
+        std::string out_v1_PickleFileName=out_v1_path+"/"+fileNameMiddle+".v1.pkl";
+        std::string out_v2_PickleFileName=out_v2_path+"/"+fileNameMiddle+".v2.pkl";
 
-
-
-
-
-
-
-
-        std::string out_U_PickleFileName = out_U_path + fileNameMiddle + ".U.pkl";
-
-        std::string out_v0_PickleFileName=out_v0_path+fileNameMiddle+".v0.pkl";
-        std::string out_v1_PickleFileName=out_v1_path+fileNameMiddle+".v1.pkl";
-        std::string out_v2_PickleFileName=out_v2_path+fileNameMiddle+".v2.pkl";
-
-        std::string out_eta_H_PickleFileName=out_eta_H_path+fileNameMiddle+".eta_H.pkl";
+        std::string out_eta_H_PickleFileName=out_eta_H_path+"/"+fileNameMiddle+".eta_H.pkl";
 
         save_array_to_pickle(U_data_ptr.get(),sweepToWrite,out_U_PickleFileName);
 
@@ -296,9 +295,9 @@ void mc_computation::execute_mc(const std::shared_ptr<double[]>& v0Vec,const std
         save_array_to_pickle(eta_H_data_ptr.get(),sweepToWrite * elemNumTot_eta_H,out_eta_H_PickleFileName);
         const auto tMCEnd{std::chrono::steady_clock::now()};
         const std::chrono::duration<double> elapsed_secondsAll{tMCEnd - tMCStart};
-        std::cout << "sweep " + std::to_string(sweepStart) + " to sweep " + std::to_string(sweepEnd) + ": "
+        std::cout << "flush " + std::to_string(flushEnd)  + ": "
                   << elapsed_secondsAll.count() / 3600.0 << " h" << std::endl;
-        sweepStart = sweepEnd + 1;
+
     }//end flush for loop
     std::cout << "mc executed for " << flushNum << " flushes." << std::endl;
 
@@ -351,6 +350,16 @@ void mc_computation::save_array_to_pickle(double *ptr,const int& size,const std:
         Py_Finalize();  // Finalize the Python interpreter
     }
 
+
+
+}
+
+
+void mc_computation::init_and_run()
+{
+    this->initialize_v0_v1_v2_eta_H();
+
+    this->execute_mc(v0_init,v1_init,v2_init,eta_H_init,newFlushNum);
 
 
 }

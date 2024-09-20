@@ -272,19 +272,19 @@ public:
         this->v2u(v2, u2);
 
         double energy_self = this->E_self(u0, u1, u2);
-        std::cout << "energy_self=" << energy_self << std::endl;
+        // std::cout << "energy_self=" << energy_self << std::endl;
 
         double energy_dipole = E_dpl();
-        std::cout << "energy_dipole=" << energy_dipole << std::endl;
+        // std::cout << "energy_dipole=" << energy_dipole << std::endl;
 
         double energy_short = E_short();
-        std::cout << "energy_short=" << energy_short << std::endl;
+        // std::cout << "energy_short=" << energy_short << std::endl;
 
         double energy_elas = E_elas(eta_H, v0, v1, v2);
-        std::cout << "energy_elas=" << energy_elas << std::endl;
+        // std::cout << "energy_elas=" << energy_elas << std::endl;
 
         double energy_elas_mode_int=E_elas_mode_int(eta_H,v0,v1,v2);
-        std::cout<<"energy_elas_mode_int="<<energy_elas_mode_int<<std::endl;
+        // std::cout<<"energy_elas_mode_int="<<energy_elas_mode_int<<std::endl;
 
         double pot_energy=energy_self+energy_dipole+energy_short+energy_elas+energy_elas_mode_int;
         return pot_energy;

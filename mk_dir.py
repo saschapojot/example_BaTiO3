@@ -131,7 +131,7 @@ def contents_to_conf(k):
         "\n",
         "effective_data_num_required=1000\n",
         "\n",
-        "sweep_to_write=10000\n",
+        "sweep_to_write=100\n",
         "\n",
         "#within each flush,  sweep_to_write mc computations are executed\n",
         "\n",
