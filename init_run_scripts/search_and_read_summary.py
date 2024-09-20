@@ -35,7 +35,7 @@ potential_function_name=jsonDataFromConf["potential_function_name"]
 effective_data_num_required=int(jsonDataFromConf["effective_data_num_required"])
 sweep_to_write=int(jsonDataFromConf["sweep_to_write"])
 default_flush_num=int(jsonDataFromConf["default_flush_num"])
-
+sweep_multiple=int(jsonDataFromConf["sweep_multiple"])
 confFileName=jsonDataFromConf["confFileName"]
 N=int(jsonDataFromConf["N"])
 
@@ -58,13 +58,13 @@ if erase_data_if_exist==True:
 #create dataDir if not exists
 Path(U_dist_dataDir).mkdir(exist_ok=True, parents=True)
 
-
+swpNumInOneFlush=sweep_to_write*sweep_multiple
 #parameters to guide mc computation
 lag=-1
 startingFileInd=-1
 startingVecPosition=-1
 newDataPointNum=-1
-newMcStepNum=sweep_to_write*default_flush_num
+newMcStepNum=swpNumInOneFlush*default_flush_num
 newFlushNum=default_flush_num
 
 
@@ -174,7 +174,7 @@ for oneLine in linesInSummaryFile:
 newMcStepNum=lag*newDataPointNum
 # print(newMcStepNum)
 # print(sweep_to_write)
-newFlushNum=int(np.ceil(newMcStepNum/(sweep_to_write)))
+newFlushNum=int(np.ceil(newMcStepNum/(swpNumInOneFlush)))
 jsonFromSummaryStr=create_jsonFromSummary(startingFileInd,startingVecPosition,newMcStepNum,
                                           newDataPointNum,newFlushNum,TDirRoot,U_dist_dataDir)
 jsonFromSummary_stdout="jsonFromSummary="+jsonFromSummaryStr

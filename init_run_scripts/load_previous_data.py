@@ -36,12 +36,12 @@ if N<=0:
 pklFileList=[]
 flushEndAll=[]
 #assume that the v0, v1, v2, eta_H files are intact, we only check v0 directory
-for file in glob.glob(U_dist_dataDir+r"/v0/*flushEnd(\d+).v0.pkl"):
+for file in glob.glob(U_dist_dataDir+"/v0/flushEnd*.pkl"):
     pklFileList.append(file)
     matchEnd=re.search(r"flushEnd(\d+)",file)
     if matchEnd:
         flushEndAll.append(int(matchEnd.group(1)))
-
+# print(U_dist_dataDir)
 flushLastFile=-1
 
 def format_using_decimal(value, precision=10):
