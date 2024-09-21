@@ -7,6 +7,8 @@ import statsmodels.api as sm
 import sys
 import re
 import warnings
+
+from oauthlib.uri_validate import pct_encoded
 from scipy.stats import ks_2samp
 import glob
 from pathlib import Path
@@ -33,11 +35,10 @@ TDirRoot=jsonFromSummaryLast["TDirRoot"]
 U_dist_dataDir=jsonFromSummaryLast["U_dist_dataDir"]
 effective_data_num_required=int(jsonDataFromConf["effective_data_num_required"])
 N=int(jsonDataFromConf["N"])
-
+sweep_to_write=int(jsonDataFromConf["sweep_to_write"])
 summary_U_distFile=TDirRoot+"/summary_U_dist.txt"
 
-
-lastFileNum=10
+lastFileNum=30
 def sort_data_files_by_flushEnd(oneDir):
     dataFilesAll=[]
     flushEndAll=[]
@@ -85,8 +86,8 @@ def auto_corrForOneVec(vec):
     :return:
     """
     same=False
-    eps=1e-2
-    NLags=int(len(vec)*1/4)
+    eps=5e-2
+    NLags=int(len(vec)*3/4)
 
     with warnings.catch_warnings():
         warnings.filterwarnings("error")
@@ -175,7 +176,7 @@ def checkUDataFilesForOneT(UData_dir):
 
 
 
-def check_oneDistDataFilesForOneT(v0Dir,v1Dir,v2Dir,N0,N1,N2,eta_HDir):
+def check_oneDistDataFilesForOneT(v0Dir,v1Dir,v2Dir,i_val,j_val,k_val,eta_HDir):
 
     v0_sortedDataFilesToRead=sort_data_files_by_flushEnd(v0Dir)
     v1_sortedDataFilesToRead=sort_data_files_by_flushEnd(v1Dir)
@@ -204,41 +205,116 @@ def check_oneDistDataFilesForOneT(v0Dir,v1Dir,v2Dir,N0,N1,N2,eta_HDir):
 
     #read v0
     with open(v0StartingFileName,"rb") as fptr:
-        v0_inArrStart=pickle.load(fptr)
+        v0_inArrStart=np.array(pickle.load(fptr))
 
-    v0Arr=v0_inArrStart
+    v0Arr=v0_inArrStart.reshape((sweep_to_write,-1,5))
     #read the rest of v0 pkl files
     for pkl_file in v0_sortedDataFilesToRead[(startingFileInd+1):]:
         with open(pkl_file,"rb") as fptr:
-            v0_inArr=pickle.load(fptr)
-            v0Arr=np.append(v0Arr,v0_inArr)
+            v0_inArr=np.array(pickle.load(fptr))
+            v0_inArr=v0_inArr.reshape((sweep_to_write,-1,5))
+
+            v0Arr=np.concatenate((v0Arr,v0_inArr),axis=0)
+
+
 
     #read v1
     with open(v1StartingFileName,"rb") as fptr:
-        v1_inArrStart=pickle.load(fptr)
-    v1Arr=v1_inArrStart
+        v1_inArrStart=np.array(pickle.load(fptr))
+
+    v1Arr=v1_inArrStart.reshape((sweep_to_write,-1,5))
     #read the rest of v1 pkl files
     for pkl_file in v1_sortedDataFilesToRead[(startingFileInd+1):]:
         with open(pkl_file,"rb") as fptr:
-            v1_inArr=pickle.load(fptr)
-            v1Arr=np.append(v1Arr,v1_inArr)
+            v1_inArr=np.array(pickle.load(fptr))
+            v1_inArr=v1_inArr.reshape((sweep_to_write,-1,5))
+            v1Arr=np.concatenate((v1Arr,v1_inArr),axis=0)
+
+
 
     #read v2
     with open(v2StartingFileName,"rb") as fptr:
-        v2_inArrStart=pickle.load(fptr)
+        v2_inArrStart=np.array(pickle.load(fptr))
 
-    v2Arr=v2_inArrStart
+    v2Arr=v2_inArrStart.reshape((sweep_to_write,-1,5))
     #read the rest of v2 pkl files
     for pkl_file in v2_sortedDataFilesToRead[(startingFileInd+1):]:
         with open(pkl_file,"rb") as fptr:
-            v2_inArr=pickle.load(fptr)
-            v2Arr=np.append(v2Arr,v2_inArr)
+            v2_inArr=np.array(pickle.load(fptr))
+            v2_inArr=v2_inArr.reshape((sweep_to_write,-1,5))
+            v2Arr=np.concatenate((v2Arr,v2_inArr),axis=0)
 
-    v0Arr=v0Arr.reshape((-1,5))
-    v1Arr=v1Arr.reshape((-1,5))
-    v2Arr=v2Arr.reshape((-1,5))
+    ind=i_val*N*N+j_val*N+k_val
 
-    print(v0Arr.shape)
+    v0_oneUnitCell=v0Arr[:,ind,:]
+    v1_oneUnitCell=v1Arr[:,ind,:]
+    v2_oneUnitCell=v2Arr[:,ind,:]
+
+    sameVec_v0v1v2=[]
+    lagVec_v0v1v2=[]
+
+
+    _,nCol=v0_oneUnitCell.shape
+    for j in range(0,nCol):
+
+        #v0
+        sameTmp,lagTmp=auto_corrForOneVec(v0_oneUnitCell[:,j])
+        sameVec_v0v1v2.append(sameTmp)
+        lagVec_v0v1v2.append(lagTmp)
+
+        #v1
+        sameTmp,lagTmp=auto_corrForOneVec(v1_oneUnitCell[:,j])
+        sameVec_v0v1v2.append(sameTmp)
+        lagVec_v0v1v2.append(lagTmp)
+
+
+        #v2
+        sameTmp,lagTmp=auto_corrForOneVec(v2_oneUnitCell[:,j])
+        sameVec_v0v1v2.append(sameTmp)
+        lagVec_v0v1v2.append(lagTmp)
+    print(lagVec_v0v1v2)
+    if any(sameVec) or -1 in lagVec_v0v1v2:
+        return [any(sameVec)],[-1],-1
+
+    lagMax=np.max(lagVec_v0v1v2)
+
+    pVec=[]
+    statVec=[]
+    for j in range(0,nCol):
+
+        # v0
+        pTmp,statTmp,lengthTmp=ksTestOneColumn(v0_oneUnitCell[:,j],lagMax)
+        pVec.append(pTmp)
+        statVec.append(statTmp)
+
+
+        # v1
+        pTmp,statTmp,lengthTmp=ksTestOneColumn(v1_oneUnitCell[:,j],lagMax)
+        pVec.append(pTmp)
+        statVec.append(statTmp)
+
+
+
+        # v2
+        pTmp,statTmp,lengthTmp=ksTestOneColumn(v2_oneUnitCell[:,j],lagMax)
+        pVec.append(pTmp)
+        statVec.append(statTmp)
+    numDataPoints=lengthTmp
+    return pVec,statVec,numDataPoints
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -263,13 +339,16 @@ numDataVec.append(numDataPointsU)
 
 
 discrete_vals=list(range(0,N))
-N0=np.random.choice(discrete_vals, size=1, replace=True)[0]
-N1=np.random.choice(discrete_vals, size=1, replace=True)[0]
-N2=np.random.choice(discrete_vals, size=1, replace=True)[0]
+i_val=np.random.choice(discrete_vals, size=1, replace=True)[0]
+j_val=np.random.choice(discrete_vals, size=1, replace=True)[0]
+k_val=np.random.choice(discrete_vals, size=1, replace=True)[0]
 
 v0_dataDir=U_dist_dataDir+"/v0/"
 v1_dataDir=U_dist_dataDir+"/v1/"
 v2_dataDir=U_dist_dataDir+"/v2/"
 eta_H_dataDir=U_dist_dataDir+"/eta_H/"
 
-check_oneDistDataFilesForOneT(v0_dataDir,v1_dataDir,v2_dataDir,N0,N1,N2,eta_H_dataDir)
+pVec,statVec,numDataPoints=check_oneDistDataFilesForOneT(v0_dataDir,v1_dataDir,v2_dataDir,i_val,j_val,k_val,eta_H_dataDir)
+print(pVec)
+print(statVec)
+print(numDataPoints)

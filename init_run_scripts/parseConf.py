@@ -64,7 +64,7 @@ def parseConfContents(file):
     boolean_pattern = r'(true|false)'
 
     coefs_pattern = rf'\[({float_pattern}(?:\s*,\s*{float_pattern})*)\]'
-
+    # print(linesWithCommentsRemoved)
     for oneLine in linesWithCommentsRemoved:
         matchLine=re.match(r'(\w+)\s*=\s*(.+)', oneLine)
         if matchLine:

@@ -135,7 +135,7 @@ def contents_to_conf(k):
         "\n",
         "#within each flush,  sweep_to_write mc computations are executed\n",
         "\n",
-        "default_flush_num=15\n",
+        "default_flush_num=150\n",
         "\n",
         "h=5e-2\n",
         "\n",
