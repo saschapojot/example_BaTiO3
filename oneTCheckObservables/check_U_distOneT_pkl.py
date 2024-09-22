@@ -38,7 +38,7 @@ N=int(jsonDataFromConf["N"])
 sweep_to_write=int(jsonDataFromConf["sweep_to_write"])
 summary_U_distFile=TDirRoot+"/summary_U_dist.txt"
 
-lastFileNum=30
+lastFileNum=270
 def sort_data_files_by_flushEnd(oneDir):
     dataFilesAll=[]
     flushEndAll=[]
@@ -176,7 +176,7 @@ def checkUDataFilesForOneT(UData_dir):
 
 
 
-def check_oneDistDataFilesForOneT(v0Dir,v1Dir,v2Dir,i_val,j_val,k_val,eta_HDir):
+def check_oneDistDataFilesForOneT(v0Dir,v1Dir,v2Dir,i_val,j_val,k_val):
 
     v0_sortedDataFilesToRead=sort_data_files_by_flushEnd(v0Dir)
     v1_sortedDataFilesToRead=sort_data_files_by_flushEnd(v1Dir)
@@ -272,12 +272,14 @@ def check_oneDistDataFilesForOneT(v0Dir,v1Dir,v2Dir,i_val,j_val,k_val,eta_HDir):
         sameTmp,lagTmp=auto_corrForOneVec(v2_oneUnitCell[:,j])
         sameVec_v0v1v2.append(sameTmp)
         lagVec_v0v1v2.append(lagTmp)
-    print(lagVec_v0v1v2)
+    # print(lagVec_v0v1v2)
     if any(sameVec) or -1 in lagVec_v0v1v2:
-        return [any(sameVec)],[-1],-1
+        return [-2],[-1],-1,[]
 
     lagMax=np.max(lagVec_v0v1v2)
-
+    # print("v0 selected: \n"+str(v0_oneUnitCell[:20,:]))
+    # print("v1 selected: \n"+str(v1_oneUnitCell[:20,:]))
+    # print("v2 selected: \n"+str(v2_oneUnitCell[:20,:]))
     pVec=[]
     statVec=[]
     for j in range(0,nCol):
@@ -300,12 +302,57 @@ def check_oneDistDataFilesForOneT(v0Dir,v1Dir,v2Dir,i_val,j_val,k_val,eta_HDir):
         pVec.append(pTmp)
         statVec.append(statTmp)
     numDataPoints=lengthTmp
-    return pVec,statVec,numDataPoints
+    return pVec,statVec,numDataPoints,lagVec_v0v1v2
 
 
+def check_eta_H(eta_H_dir):
 
+    eta_H_sortedDataFilesToRead=sort_data_files_by_flushEnd(eta_H_dataDir)
+    # print(eta_H_sortedDataFilesToRead)
+    startingFileInd,startingVecPosition=parseSummaryU_Dist()
+    if startingFileInd<0:
+        #we guess that the equilibrium starts at this file
+        startingFileInd=len(eta_H_sortedDataFilesToRead)-lastFileNum
 
+    eta_HStartingFileName=eta_H_sortedDataFilesToRead[startingFileInd]
 
+    with open(eta_HStartingFileName,"rb") as fptr:
+        eta_H_inArrStart=np.array(pickle.load(fptr))
+
+    eta_H_Arr=eta_H_inArrStart.reshape((-1,6))
+
+    #read the rest of eta_H pkl files
+    for pkl_file in eta_H_sortedDataFilesToRead[(startingFileInd+1):]:
+        with open(pkl_file,"rb") as fptr:
+            eta_H_inArr=np.array(pickle.load(fptr))
+            eta_H_inArr=eta_H_inArr.reshape((-1,6))
+            eta_H_Arr=np.concatenate((eta_H_Arr,eta_H_inArr),axis=0)
+
+    sameVec_eta_H_1_6=[]
+    lagVec_eta_H_1_6=[]
+
+    _,nCol=eta_H_Arr.shape
+
+    for j in range(0,nCol):
+        sameTmp,lagTmp=auto_corrForOneVec(eta_H_Arr[:,j])
+        sameVec_eta_H_1_6.append(sameTmp)
+        lagVec_eta_H_1_6.append(lagTmp)
+    # print(sameVec)
+    # print(lagVec_eta_H_1_6)
+    if any(sameVec_eta_H_1_6) or -1 in lagVec_eta_H_1_6:
+        return [-2],[-1],-1,[]
+
+    lagMax=np.max(lagVec_eta_H_1_6)
+    pVec=[]
+    statVec=[]
+
+    for j in range(0,nCol):
+        pTmp,statTmp,lengthTmp=ksTestOneColumn(eta_H_Arr[:,j],lagMax)
+        pVec.append(pTmp)
+        statVec.append(statTmp)
+
+    numDataPoints=lengthTmp
+    return pVec,statVec,numDataPoints,lagVec_eta_H_1_6
 
 
 
@@ -348,7 +395,70 @@ v1_dataDir=U_dist_dataDir+"/v1/"
 v2_dataDir=U_dist_dataDir+"/v2/"
 eta_H_dataDir=U_dist_dataDir+"/eta_H/"
 
-pVec,statVec,numDataPoints=check_oneDistDataFilesForOneT(v0_dataDir,v1_dataDir,v2_dataDir,i_val,j_val,k_val,eta_H_dataDir)
-print(pVec)
-print(statVec)
-print(numDataPoints)
+pVec_v0v1v2,statVec_v0v1v2,numDataPoints_v0v1v2,lagVec_v0v1v2=check_oneDistDataFilesForOneT(v0_dataDir,v1_dataDir,v2_dataDir,i_val,j_val,k_val)
+# print(pVec_v0v1v2)
+# print(statVec)
+# print(numDataPoints_v0v1v2)
+# print(lagVec_v0v1v2)
+pVec+=pVec_v0v1v2
+statVec+=statVec_v0v1v2
+pVec_eta_H_1_6,statVec_eta_H_1_6,numDataPoints_eta_H_1_6,lagVec_eta_H_1_6=check_eta_H(eta_H_dataDir)
+# print(pVec_eta_H_1_6)
+# print(numDataPoints_eta_H_1_6)
+pVec+=pVec_eta_H_1_6
+statVec+=statVec_eta_H_1_6
+lagVecAll=[lagUTmp]+lagVec_v0v1v2+lagVec_eta_H_1_6
+lagMax=np.max(lagVecAll)
+numDataPoints=np.min([numDataPointsU,numDataPoints_v0v1v2,numDataPoints_eta_H_1_6])
+print("lagMax="+str(lagMax))
+print("numDataPoints="+str(numDataPoints))
+
+############################################
+summary_U_distFile=TDirRoot+"/summary_U_dist.txt"
+statThreshhold=0.1
+if pVec[0]==-2:
+    with open(summary_U_distFile,"w+") as fptr:
+        msg="error: same\n"
+        fptr.writelines(msg)
+        exit(sameErrCode)
+
+if numDataPoints<0:
+    msg="high correlation"
+    with open(summary_U_distFile,"w+") as fptr:
+        fptr.writelines(msg)
+    exit(0)
+
+
+if (np.min(pVec)>=0.01 or np.max(statVec)<=statThreshhold) and numDataPoints>=200:
+    if numDataPoints>=effective_data_num_required:
+        newDataPointNum=0
+    else:
+        newDataPointNum=effective_data_num_required-numDataPoints
+
+    msg="equilibrium\n" \
+        +"lag="+str(lagMax)+"\n" \
+        +"numDataPoints="+str(numDataPoints)+"\n" \
+        +"startingFileInd="+str(startingFileInd)+"\n" \
+        +"startingVecPosition="+str(startingVecPosition)+"\n" \
+        +"newDataPointNum="+str(newDataPointNum)+"\n"
+    print(msg)
+    with open(summary_U_distFile,"w+") as fptr:
+        fptr.writelines(msg)
+    exit(0)
+
+#continue
+continueMsg="continue\n"
+
+if not (np.min(pVec)>=0.01 or np.max(statVec)<=statThreshhold):
+    continueMsg+="stat value: "+str(np.max(statVec))+"\n"
+    continueMsg+="p value: "+str(np.min(pVec))+"\n"
+
+if numDataPoints<200:
+    #not enough data number
+
+    continueMsg+="numDataPoints="+str(numDataPoints)+" too low\n"
+    continueMsg+="lag="+str(lagMax)+"\n"
+print(continueMsg)
+with open(summary_U_distFile,"w+") as fptr:
+    fptr.writelines(continueMsg)
+exit(0)

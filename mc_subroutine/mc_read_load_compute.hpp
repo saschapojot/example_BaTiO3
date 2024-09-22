@@ -150,7 +150,8 @@ public:
                 iss>>h;
                 paramCounter++;
                 std::cout << "h=" << h << std::endl;
-
+                this->h_eta_H=h;
+                this->h_v=20*h;
                 continue;
             }// end h
 
@@ -241,7 +242,7 @@ public:
 
     double generate_nearby_normal(const double & x,const double &sigma);
 
-    void proposal(const std::shared_ptr<double[]> & vecCurr,std::shared_ptr<double[]>&vecNext,const int&pos, const int &vecLength);
+    void proposal(const std::shared_ptr<double[]> & vecCurr,std::shared_ptr<double[]>&vecNext,const int&pos, const int &vecLength,const double& sigma);
 
     double acceptanceRatio( const double&UCurr, const double& UNext);
 
@@ -282,6 +283,8 @@ public:
     double T;// temperature
     double beta;
     double h;// step size
+    double h_eta_H;//step size for eta_H
+    double h_v;//step size for v
     int sweepToWrite;
     int newFlushNum;
     int flushLastFile;

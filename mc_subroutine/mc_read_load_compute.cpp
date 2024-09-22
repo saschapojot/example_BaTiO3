@@ -111,9 +111,9 @@ double mc_computation::generate_nearby_normal(const double & x,const double &sig
 
 }
 
-void mc_computation::proposal(const std::shared_ptr<double[]> & vecCurr,std::shared_ptr<double[]>&vecNext,const int&pos, const int &vecLength)
+void mc_computation::proposal(const std::shared_ptr<double[]> & vecCurr,std::shared_ptr<double[]>&vecNext,const int&pos, const int &vecLength,const double& sigma)
 {
-    double elem_next=generate_nearby_normal(vecCurr[pos],h);
+    double elem_next=generate_nearby_normal(vecCurr[pos],sigma);
 
     std::memcpy(vecNext.get(),vecCurr.get(),vecLength*sizeof(double));
     vecNext[pos]=elem_next;
@@ -150,7 +150,7 @@ void mc_computation::execute_mc_one_sweep(std::shared_ptr<double[]>& v0_Curr,std
     {
 
         int pos_eta_H=randint_0_5(e2);
-        this->proposal(eta_H_Curr,eta_H_Next,pos_eta_H,elemNumTot_eta_H);
+        this->proposal(eta_H_Curr,eta_H_Next,pos_eta_H,elemNumTot_eta_H,h_eta_H);
 
         UCurr=(*potFuncPtr)(eta_H_Curr,v0_Curr,v1_Curr,v2_Curr);
         UNext=(*potFuncPtr)(eta_H_Next,v0_Curr,v1_Curr,v2_Curr);
@@ -175,7 +175,7 @@ void mc_computation::execute_mc_one_sweep(std::shared_ptr<double[]>& v0_Curr,std
         int q=randint_0_5(e2);
         int ind= flattened_ind_for_v(i,j,k,q);
 
-        this->proposal(v0_Curr,v0_Next,ind,elemNumTot_v);
+        this->proposal(v0_Curr,v0_Next,ind,elemNumTot_v,h_v);
         UCurr=(*potFuncPtr)(eta_H_Curr,v0_Curr,v1_Curr,v2_Curr);
         UNext=(*potFuncPtr)(eta_H_Curr,v0_Next,v1_Curr,v2_Curr);
         double r=this->acceptanceRatio(UCurr,UNext);
@@ -196,7 +196,7 @@ void mc_computation::execute_mc_one_sweep(std::shared_ptr<double[]>& v0_Curr,std
         int k=randint_0_N_minus1(e2);
         int q=randint_0_5(e2);
         int ind= flattened_ind_for_v(i,j,k,q);
-        this->proposal(v1_Curr,v1_Next,ind,elemNumTot_v);
+        this->proposal(v1_Curr,v1_Next,ind,elemNumTot_v,h_v);
         UCurr=(*potFuncPtr)(eta_H_Curr,v0_Curr,v1_Curr,v2_Curr);
         UNext=(*potFuncPtr)(eta_H_Curr,v0_Curr,v1_Next,v2_Curr);
         double r=this->acceptanceRatio(UCurr,UNext);
@@ -216,7 +216,7 @@ for(int l=0;l<elemNumTot_v;l++){
     int k=randint_0_N_minus1(e2);
     int q=randint_0_5(e2);
     int ind= flattened_ind_for_v(i,j,k,q);
-    this->proposal(v2_Curr,v2_Next,ind,elemNumTot_v);
+    this->proposal(v2_Curr,v2_Next,ind,elemNumTot_v,h_v);
     UCurr=(*potFuncPtr)(eta_H_Curr,v0_Curr,v1_Curr,v2_Curr);
     UNext=(*potFuncPtr)(eta_H_Curr,v0_Curr,v1_Curr,v2_Next);
     double r=this->acceptanceRatio(UCurr,UNext);
