@@ -37,8 +37,13 @@ effective_data_num_required=int(jsonDataFromConf["effective_data_num_required"])
 N=int(jsonDataFromConf["N"])
 sweep_to_write=int(jsonDataFromConf["sweep_to_write"])
 summary_U_distFile=TDirRoot+"/summary_U_dist.txt"
+xi_Ba=0.2
+xi_Ti=0.76
+xi_O_parallel=-0.53
+xi_O_perpendicular=-0.21
 
-lastFileNum=270
+xiVec=np.array([xi_Ba,xi_Ti,xi_O_parallel,xi_O_perpendicular,xi_O_perpendicular])
+lastFileNum=40
 def sort_data_files_by_flushEnd(oneDir):
     dataFilesAll=[]
     flushEndAll=[]
@@ -277,9 +282,14 @@ def check_oneDistDataFilesForOneT(v0Dir,v1Dir,v2Dir,i_val,j_val,k_val):
         return [-2],[-1],-1,[]
 
     lagMax=np.max(lagVec_v0v1v2)
-    # print("v0 selected: \n"+str(v0_oneUnitCell[:20,:]))
-    # print("v1 selected: \n"+str(v1_oneUnitCell[:20,:]))
-    # print("v2 selected: \n"+str(v2_oneUnitCell[:20,:]))
+    # print("v0 selected: \n"+str(v0_oneUnitCell[-20:,:]))
+    # print("v1 selected: \n"+str(v1_oneUnitCell[-20:,:]))
+    # print("v2 selected: \n"+str(v2_oneUnitCell[-20:,:]))
+    ##############################
+    print("u0 selected: \n"+str(v0_oneUnitCell[-20:,:]@xiVec))
+    print("u1 selected: \n"+str(v1_oneUnitCell[-20:,:]@xiVec))
+    print("u2 selected: \n"+str(v2_oneUnitCell[-20:,:]@xiVec))
+
     pVec=[]
     statVec=[]
     for j in range(0,nCol):
@@ -399,7 +409,7 @@ pVec_v0v1v2,statVec_v0v1v2,numDataPoints_v0v1v2,lagVec_v0v1v2=check_oneDistDataF
 # print(pVec_v0v1v2)
 # print(statVec)
 # print(numDataPoints_v0v1v2)
-# print(lagVec_v0v1v2)
+print("lagVec_v0v1v2="+str(lagVec_v0v1v2))
 pVec+=pVec_v0v1v2
 statVec+=statVec_v0v1v2
 pVec_eta_H_1_6,statVec_eta_H_1_6,numDataPoints_eta_H_1_6,lagVec_eta_H_1_6=check_eta_H(eta_H_dataDir)

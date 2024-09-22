@@ -151,7 +151,7 @@ public:
                 paramCounter++;
                 std::cout << "h=" << h << std::endl;
                 this->h_eta_H=h;
-                this->h_v=20*h;
+                this->h_v=500*h;
                 continue;
             }// end h
 
