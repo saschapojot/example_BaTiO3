@@ -43,7 +43,7 @@ xi_O_parallel=-0.53
 xi_O_perpendicular=-0.21
 
 xiVec=np.array([xi_Ba,xi_Ti,xi_O_parallel,xi_O_perpendicular,xi_O_perpendicular])
-lastFileNum=40
+lastFileNum=80
 def sort_data_files_by_flushEnd(oneDir):
     dataFilesAll=[]
     flushEndAll=[]
@@ -255,64 +255,109 @@ def check_oneDistDataFilesForOneT(v0Dir,v1Dir,v2Dir,i_val,j_val,k_val):
     v1_oneUnitCell=v1Arr[:,ind,:]
     v2_oneUnitCell=v2Arr[:,ind,:]
 
-    sameVec_v0v1v2=[]
-    lagVec_v0v1v2=[]
+    u0_oneUnitCell=v0_oneUnitCell@xiVec
+    u1_oneUnitCell=v1_oneUnitCell@xiVec
+    u2_oneUnitCell=v2_oneUnitCell@xiVec
+    print("u0_oneUnitCell[-20:]:\n"+str(u0_oneUnitCell[-20:]))
+    print("u1_oneUnitCell[-20:]:\n"+str(u1_oneUnitCell[-20:]))
+    print("u2_oneUnitCell[-20:]:\n"+str(u2_oneUnitCell[-20:]))
+
+
+    # sameVec_v0v1v2=[]
+    # lagVec_v0v1v2=[]
+
+    sameVec_u0u1u2=[]
+    lagVec_u0u1u2=[]
 
 
     _,nCol=v0_oneUnitCell.shape
-    for j in range(0,nCol):
 
-        #v0
-        sameTmp,lagTmp=auto_corrForOneVec(v0_oneUnitCell[:,j])
-        sameVec_v0v1v2.append(sameTmp)
-        lagVec_v0v1v2.append(lagTmp)
+    sameTmp_u0,lagTmp_u0=auto_corrForOneVec(u0_oneUnitCell)
+    sameTmp_u1,lagTmp_u1=auto_corrForOneVec(u1_oneUnitCell)
+    sameTmp_u2,lagTmp_u2=auto_corrForOneVec(u2_oneUnitCell)
 
-        #v1
-        sameTmp,lagTmp=auto_corrForOneVec(v1_oneUnitCell[:,j])
-        sameVec_v0v1v2.append(sameTmp)
-        lagVec_v0v1v2.append(lagTmp)
+    sameVec_u0u1u2.append(sameTmp_u0)
+    sameVec_u0u1u2.append(sameTmp_u1)
+    sameVec_u0u1u2.append(sameTmp_u2)
+
+    lagVec_u0u1u2.append(lagTmp_u0)
+    lagVec_u0u1u2.append(lagTmp_u1)
+    lagVec_u0u1u2.append(lagTmp_u2)
 
 
-        #v2
-        sameTmp,lagTmp=auto_corrForOneVec(v2_oneUnitCell[:,j])
-        sameVec_v0v1v2.append(sameTmp)
-        lagVec_v0v1v2.append(lagTmp)
+    # print("lagTmp_u0="+str(lagTmp_u0))
+    # print("lagTmp_u1="+str(lagTmp_u1))
+    # print("lagTmp_u2="+str(lagTmp_u2))
+
+    # for j in range(0,nCol):
+    #
+    #     #v0
+    #     sameTmp,lagTmp=auto_corrForOneVec(v0_oneUnitCell[:,j])
+    #     sameVec_v0v1v2.append(sameTmp)
+    #     lagVec_v0v1v2.append(lagTmp)
+    #
+    #     #v1
+    #     sameTmp,lagTmp=auto_corrForOneVec(v1_oneUnitCell[:,j])
+    #     sameVec_v0v1v2.append(sameTmp)
+    #     lagVec_v0v1v2.append(lagTmp)
+    #
+    #
+    #     #v2
+    #     sameTmp,lagTmp=auto_corrForOneVec(v2_oneUnitCell[:,j])
+    #     sameVec_v0v1v2.append(sameTmp)
+    #     lagVec_v0v1v2.append(lagTmp)
     # print(lagVec_v0v1v2)
-    if any(sameVec) or -1 in lagVec_v0v1v2:
+    if any(sameVec_u0u1u2) or -1 in lagVec_u0u1u2:
         return [-2],[-1],-1,[]
 
-    lagMax=np.max(lagVec_v0v1v2)
+    lagMax=np.max(lagVec_u0u1u2)
     # print("v0 selected: \n"+str(v0_oneUnitCell[-20:,:]))
     # print("v1 selected: \n"+str(v1_oneUnitCell[-20:,:]))
     # print("v2 selected: \n"+str(v2_oneUnitCell[-20:,:]))
     ##############################
-    print("u0 selected: \n"+str(v0_oneUnitCell[-20:,:]@xiVec))
-    print("u1 selected: \n"+str(v1_oneUnitCell[-20:,:]@xiVec))
-    print("u2 selected: \n"+str(v2_oneUnitCell[-20:,:]@xiVec))
+    # print("u0 selected: \n"+str(v0_oneUnitCell[-20:,:]@xiVec))
+    # print("u1 selected: \n"+str(v1_oneUnitCell[-20:,:]@xiVec))
+    # print("u2 selected: \n"+str(v2_oneUnitCell[-20:,:]@xiVec))
 
     pVec=[]
     statVec=[]
-    for j in range(0,nCol):
 
-        # v0
-        pTmp,statTmp,lengthTmp=ksTestOneColumn(v0_oneUnitCell[:,j],lagMax)
-        pVec.append(pTmp)
-        statVec.append(statTmp)
+    #u0
+    pTmp,statTmp,lengthTmp=ksTestOneColumn(u0_oneUnitCell,lagMax)
+    pVec.append(pTmp)
+    statVec.append(statTmp)
 
+    # u1
+    pTmp,statTmp,lengthTmp=ksTestOneColumn(u1_oneUnitCell,lagMax)
+    pVec.append(pTmp)
+    statVec.append(statTmp)
 
-        # v1
-        pTmp,statTmp,lengthTmp=ksTestOneColumn(v1_oneUnitCell[:,j],lagMax)
-        pVec.append(pTmp)
-        statVec.append(statTmp)
+    #u2
+    pTmp,statTmp,lengthTmp=ksTestOneColumn(u2_oneUnitCell,lagMax)
+    pVec.append(pTmp)
+    statVec.append(statTmp)
 
-
-
-        # v2
-        pTmp,statTmp,lengthTmp=ksTestOneColumn(v2_oneUnitCell[:,j],lagMax)
-        pVec.append(pTmp)
-        statVec.append(statTmp)
+    # for j in range(0,3):
+    #
+    #     # v0
+    #     pTmp,statTmp,lengthTmp=ksTestOneColumn(v0_oneUnitCell[:,j],lagMax)
+    #     pVec.append(pTmp)
+    #     statVec.append(statTmp)
+    #
+    #
+    #     # v1
+    #     pTmp,statTmp,lengthTmp=ksTestOneColumn(v1_oneUnitCell[:,j],lagMax)
+    #     pVec.append(pTmp)
+    #     statVec.append(statTmp)
+    #
+    #
+    #
+    #     # v2
+    #     pTmp,statTmp,lengthTmp=ksTestOneColumn(v2_oneUnitCell[:,j],lagMax)
+    #     pVec.append(pTmp)
+    #     statVec.append(statTmp)
     numDataPoints=lengthTmp
-    return pVec,statVec,numDataPoints,lagVec_v0v1v2
+    return pVec,statVec,numDataPoints,lagVec_u0u1u2
 
 
 def check_eta_H(eta_H_dir):
@@ -405,21 +450,21 @@ v1_dataDir=U_dist_dataDir+"/v1/"
 v2_dataDir=U_dist_dataDir+"/v2/"
 eta_H_dataDir=U_dist_dataDir+"/eta_H/"
 
-pVec_v0v1v2,statVec_v0v1v2,numDataPoints_v0v1v2,lagVec_v0v1v2=check_oneDistDataFilesForOneT(v0_dataDir,v1_dataDir,v2_dataDir,i_val,j_val,k_val)
+pVec_u0u1u2,statVec_u0u1u2,numDataPoints_u0u1u2,lagVec_u0u1u2=check_oneDistDataFilesForOneT(v0_dataDir,v1_dataDir,v2_dataDir,i_val,j_val,k_val)
 # print(pVec_v0v1v2)
 # print(statVec)
 # print(numDataPoints_v0v1v2)
-print("lagVec_v0v1v2="+str(lagVec_v0v1v2))
-pVec+=pVec_v0v1v2
-statVec+=statVec_v0v1v2
+print("lagVec_u0u1u2="+str(lagVec_u0u1u2))
+pVec+=pVec_u0u1u2
+statVec+=statVec_u0u1u2
 pVec_eta_H_1_6,statVec_eta_H_1_6,numDataPoints_eta_H_1_6,lagVec_eta_H_1_6=check_eta_H(eta_H_dataDir)
 # print(pVec_eta_H_1_6)
 # print(numDataPoints_eta_H_1_6)
 pVec+=pVec_eta_H_1_6
 statVec+=statVec_eta_H_1_6
-lagVecAll=[lagUTmp]+lagVec_v0v1v2+lagVec_eta_H_1_6
+lagVecAll=[lagUTmp]+lagVec_u0u1u2+lagVec_eta_H_1_6
 lagMax=np.max(lagVecAll)
-numDataPoints=np.min([numDataPointsU,numDataPoints_v0v1v2,numDataPoints_eta_H_1_6])
+numDataPoints=np.min([numDataPointsU,numDataPoints_u0u1u2,numDataPoints_eta_H_1_6])
 print("lagMax="+str(lagMax))
 print("numDataPoints="+str(numDataPoints))
 

@@ -60,6 +60,7 @@ def parseConfContents(file):
     B100Str=""
     B111Str=""
     B412Str=""
+    xiVecStr=""
     float_pattern = r'[-+]?(?:\d*\.\d+|\d+)(?:[eE][-+]?\d+)?'
     boolean_pattern = r'(true|false)'
 
@@ -206,6 +207,15 @@ def parseConfContents(file):
                 else:
                     print(fmtErrStr+oneLine)
                     exit(fmtCode)
+            #match xiVec
+            if key=="xiVec":
+                match_xiVec=re.match(coefs_pattern,value)
+                if match_xiVec:
+                    xiVecStr=match_xiVec.group(1).replace(" ", "")
+                else:
+                    print(fmtErrStr+oneLine)
+                    exit(fmtCode)
+
 
         else:
             print("line: "+oneLine+" is discarded.")
@@ -264,6 +274,10 @@ def parseConfContents(file):
         print("B412 not found in "+str(file))
         exit(valueMissingCode)
 
+    if xiVecStr=="":
+        print("xiVec not found in "+str(file))
+        exit(valueMissingCode)
+
 
     if obs_name=="":
         dictTmp={
@@ -282,7 +296,8 @@ def parseConfContents(file):
             "lambda": lambdaStr,
             "B100":B100Str,
             "B111":B111Str,
-            "B412":B412Str
+            "B412":B412Str,
+            "xiVec":xiVecStr
 
         }
         return dictTmp
@@ -304,7 +319,8 @@ def parseConfContents(file):
             "lambda": lambdaStr,
             "B100":B100Str,
             "B111":B111Str,
-            "B412":B412Str
+            "B412":B412Str,
+            "xiVec":xiVecStr
 
 
         }

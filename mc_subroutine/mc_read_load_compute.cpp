@@ -137,30 +137,58 @@ double mc_computation::acceptanceRatio( const double&UCurr, const double& UNext)
 void mc_computation::execute_mc_one_sweep(std::shared_ptr<double[]>& v0_Curr,std::shared_ptr<double[]>&v1_Curr,std::shared_ptr<double[]>&v2_Curr,
         std::shared_ptr<double[]>& eta_H_Curr,double &UCurr,
         std::shared_ptr<double[]>&v0_Next,std::shared_ptr<double[]>& v1_Next, std::shared_ptr<double[]>&v2_Next,std::shared_ptr<double[]>&eta_H_Next
-        ,const int &fls, const int& swp)
+        , double &U_time, double& proposal_time,double &rand_time,double &acc_reject_time)
 {
 
     //next U
 
     double UNext;
+    U_time=0;
+    proposal_time=0;
+    rand_time=0;
+    std::chrono::duration<double> total_U_Elapsed{0};
+    std::chrono::duration<double> total_proposal_Elapsed{0};
+    std::chrono::duration<double> total_rand_Elapsed{0};
+    std::chrono::duration<double> total_acc_reject_Elapsed{0};
 
     //first update eta_H
 
     for(int j=0;j<elemNumTot_eta_H;j++)
     {
-
+        const auto t_rand_Start= std::chrono::steady_clock::now();
         int pos_eta_H=randint_0_5(e2);
+        const auto t_rand_End= std::chrono::steady_clock::now();
+        const auto rand_elapsed = std::chrono::duration<double>(t_rand_End - t_rand_Start);
+        total_rand_Elapsed+=rand_elapsed;
+
+        const auto t_proposal_Start= std::chrono::steady_clock::now();
         this->proposal(eta_H_Curr,eta_H_Next,pos_eta_H,elemNumTot_eta_H,h_eta_H);
+        const auto t_proposal_End= std::chrono::steady_clock::now();
+        const auto proposal_elapsed = std::chrono::duration<double>(t_proposal_End - t_proposal_Start);
+        total_proposal_Elapsed+=proposal_elapsed;
+
+
+        const auto tU_Start= std::chrono::steady_clock::now();
 
         UCurr=(*potFuncPtr)(eta_H_Curr,v0_Curr,v1_Curr,v2_Curr);
         UNext=(*potFuncPtr)(eta_H_Next,v0_Curr,v1_Curr,v2_Curr);
 
+        const auto tU_End= std::chrono::steady_clock::now();
+        const auto U_elapsed = std::chrono::duration<double>(tU_End - tU_Start);
+        total_U_Elapsed+=U_elapsed;
+
+
+        const auto t_acc_reject_Start= std::chrono::steady_clock::now();
         double r=this->acceptanceRatio(UCurr,UNext);
         double u = distUnif01(e2);
         if(u<=r){
             UCurr=UNext;
             std::memcpy(eta_H_Curr.get(),eta_H_Next.get(),elemNumTot_eta_H*sizeof(double));
         }
+
+        const auto t_acc_reject_End= std::chrono::steady_clock::now();
+        const auto acc_reject_elapsed = std::chrono::duration<double>(t_acc_reject_End - t_acc_reject_Start);
+        total_acc_reject_Elapsed+=acc_reject_elapsed;
 
 
 
@@ -169,15 +197,36 @@ void mc_computation::execute_mc_one_sweep(std::shared_ptr<double[]>& v0_Curr,std
 
     //update v0
     for(int l=0;l<elemNumTot_v;l++){
+        const auto t_rand_Start= std::chrono::steady_clock::now();
+
         int i=randint_0_N_minus1(e2);
         int j=randint_0_N_minus1(e2);
         int k=randint_0_N_minus1(e2);
         int q=randint_0_5(e2);
+        const auto t_rand_End= std::chrono::steady_clock::now();
+        const auto rand_elapsed = std::chrono::duration<double>(t_rand_End - t_rand_Start);
+        total_rand_Elapsed+=rand_elapsed;
+
         int ind= flattened_ind_for_v(i,j,k,q);
 
+        const auto t_proposal_Start= std::chrono::steady_clock::now();
         this->proposal(v0_Curr,v0_Next,ind,elemNumTot_v,h_v);
+        const auto t_proposal_End= std::chrono::steady_clock::now();
+        const auto proposal_elapsed = std::chrono::duration<double>(t_proposal_End - t_proposal_Start);
+        total_proposal_Elapsed+=proposal_elapsed;
+
+
+        const auto tU_Start= std::chrono::steady_clock::now();
+
         UCurr=(*potFuncPtr)(eta_H_Curr,v0_Curr,v1_Curr,v2_Curr);
         UNext=(*potFuncPtr)(eta_H_Curr,v0_Next,v1_Curr,v2_Curr);
+
+        const auto tU_End= std::chrono::steady_clock::now();
+        const auto U_elapsed = std::chrono::duration<double>(tU_End - tU_Start);
+        total_U_Elapsed+=U_elapsed;
+
+        const auto t_acc_reject_Start= std::chrono::steady_clock::now();
+
         double r=this->acceptanceRatio(UCurr,UNext);
         double u = distUnif01(e2);
         if(u<=r){
@@ -185,40 +234,94 @@ void mc_computation::execute_mc_one_sweep(std::shared_ptr<double[]>& v0_Curr,std
             std::memcpy(v0_Curr.get(),v0_Next.get(),elemNumTot_v*sizeof(double ));
         }
 
+        const auto t_acc_reject_End= std::chrono::steady_clock::now();
+        const auto acc_reject_elapsed = std::chrono::duration<double>(t_acc_reject_End - t_acc_reject_Start);
+        total_acc_reject_Elapsed+=acc_reject_elapsed;
+
 
 
     }//end updating v0
 
     //update v1
     for(int l=0;l<elemNumTot_v;l++){
+        const auto t_rand_Start= std::chrono::steady_clock::now();
+
         int i=randint_0_N_minus1(e2);
         int j=randint_0_N_minus1(e2);
         int k=randint_0_N_minus1(e2);
         int q=randint_0_5(e2);
+        const auto t_rand_End= std::chrono::steady_clock::now();
+        const auto rand_elapsed = std::chrono::duration<double>(t_rand_End - t_rand_Start);
+        total_rand_Elapsed+=rand_elapsed;
+
+
         int ind= flattened_ind_for_v(i,j,k,q);
+
+        const auto t_proposal_Start= std::chrono::steady_clock::now();
         this->proposal(v1_Curr,v1_Next,ind,elemNumTot_v,h_v);
+        const auto t_proposal_End= std::chrono::steady_clock::now();
+        const auto proposal_elapsed = std::chrono::duration<double>(t_proposal_End - t_proposal_Start);
+        total_proposal_Elapsed+=proposal_elapsed;
+
+
+
+        const auto tU_Start= std::chrono::steady_clock::now();
+
         UCurr=(*potFuncPtr)(eta_H_Curr,v0_Curr,v1_Curr,v2_Curr);
         UNext=(*potFuncPtr)(eta_H_Curr,v0_Curr,v1_Next,v2_Curr);
+
+        const auto tU_End= std::chrono::steady_clock::now();
+        const auto U_elapsed = std::chrono::duration<double>(tU_End - tU_Start);
+        total_U_Elapsed+=U_elapsed;
+
+
+        const auto t_acc_reject_Start= std::chrono::steady_clock::now();
+
         double r=this->acceptanceRatio(UCurr,UNext);
         double u = distUnif01(e2);
         if(u<=r) {
             UCurr = UNext;
             std::memcpy(v1_Curr.get(),v1_Next.get(),elemNumTot_v*sizeof(double ));
         }
+        const auto t_acc_reject_End= std::chrono::steady_clock::now();
+        const auto acc_reject_elapsed =std::chrono::duration<double>(t_acc_reject_End - t_acc_reject_Start);
+        total_acc_reject_Elapsed+=acc_reject_elapsed;
 
     }//end updating v1
 
 
 //update v2
 for(int l=0;l<elemNumTot_v;l++){
+    const auto t_rand_Start= std::chrono::steady_clock::now();
+
+
     int i=randint_0_N_minus1(e2);
     int j=randint_0_N_minus1(e2);
     int k=randint_0_N_minus1(e2);
     int q=randint_0_5(e2);
+    const auto t_rand_End= std::chrono::steady_clock::now();
+    const auto rand_elapsed = std::chrono::duration<double>(t_rand_End - t_rand_Start);
+    total_rand_Elapsed+=rand_elapsed;
+
     int ind= flattened_ind_for_v(i,j,k,q);
+
+    const auto t_proposal_Start= std::chrono::steady_clock::now();
     this->proposal(v2_Curr,v2_Next,ind,elemNumTot_v,h_v);
+    const auto t_proposal_End= std::chrono::steady_clock::now();
+    const auto proposal_elapsed = std::chrono::duration<double>(t_proposal_End - t_proposal_Start);
+    total_proposal_Elapsed+=proposal_elapsed;
+
+
+    const auto tU_Start= std::chrono::steady_clock::now();
+
     UCurr=(*potFuncPtr)(eta_H_Curr,v0_Curr,v1_Curr,v2_Curr);
     UNext=(*potFuncPtr)(eta_H_Curr,v0_Curr,v1_Curr,v2_Next);
+    const auto tU_End= std::chrono::steady_clock::now();
+    const auto U_elapsed = std::chrono::duration<double>(tU_End - tU_Start);
+    total_U_Elapsed+=U_elapsed;
+
+    const auto t_acc_reject_Start= std::chrono::steady_clock::now();
+
     double r=this->acceptanceRatio(UCurr,UNext);
     double u = distUnif01(e2);
     if(u<=r) {
@@ -226,7 +329,19 @@ for(int l=0;l<elemNumTot_v;l++){
         std::memcpy(v2_Curr.get(),v2_Next.get(),elemNumTot_v*sizeof(double ));
     }
 
-}//end updating v1
+    const auto t_acc_reject_End= std::chrono::steady_clock::now();
+    const auto acc_reject_elapsed = std::chrono::duration<double>(t_acc_reject_End - t_acc_reject_Start);
+    total_acc_reject_Elapsed+=acc_reject_elapsed;
+
+
+
+}//end updating v2
+    // std::cout<<"total_U_Elapsed.count()="<<total_U_Elapsed.count()<<std::endl;
+    U_time=total_U_Elapsed.count();
+    proposal_time=total_proposal_Elapsed.count();
+    rand_time=total_rand_Elapsed.count();
+    acc_reject_time=total_acc_reject_Elapsed.count();
+
 
 }
 
@@ -241,6 +356,17 @@ int mc_computation::flattened_ind_for_v(const int& i, const int& j, const int& k
 
 
 void mc_computation::execute_mc(const std::shared_ptr<double[]>& v0Vec,const std::shared_ptr<double[]>& v1Vec, const std::shared_ptr<double[]>& v2Vec,const std::shared_ptr<double[]>& eta_HVec, const int & flushNum){
+
+    double U_time_total=0;
+    double proposal_time_total=0;
+    double rand_time_total=0;
+    double acc_reject_time_total=0;
+    double cpy_time_total=0;
+    double write2pkl_time_total=0;
+    std::chrono::duration<double> total_cpy_Elapsed{0};  // Start with zero seconds
+    std::chrono::duration<double> total_write2pkl_Elapsed{0};
+
+     auto t_cpy_Start= std::chrono::steady_clock::now();
 
     std::shared_ptr<double[]> v0_Curr=std::shared_ptr<double[]>(new double[elemNumTot_v], std::default_delete<double[]>());
     std::shared_ptr<double[]> v0_Next=std::shared_ptr<double[]>(new double[elemNumTot_v], std::default_delete<double[]>());
@@ -257,18 +383,33 @@ void mc_computation::execute_mc(const std::shared_ptr<double[]>& v0Vec,const std
     std::shared_ptr<double[]> eta_H_Curr=std::shared_ptr<double[]>(new double[elemNumTot_eta_H], std::default_delete<double[]>());
     std::shared_ptr<double[]> eta_H_Next=std::shared_ptr<double[]>(new double[elemNumTot_eta_H], std::default_delete<double[]>());
     std::memcpy(eta_H_Curr.get(),eta_HVec.get(),elemNumTot_eta_H*sizeof(double ));
+     auto t_cpy_End= std::chrono::steady_clock::now();
+     auto cpy_elapsed = std::chrono::duration<double>(t_cpy_End - t_cpy_Start);
 
+    total_cpy_Elapsed+=cpy_elapsed;
     // int sweepStart = sweepInit;
     double UCurr=0;
     int flushThisFileStart=this->flushLastFile+1;
     int sweepStart =flushThisFileStart*sweepToWrite*sweep_multiple;
+
 
     for (int fls = 0; fls < flushNum; fls++) {
         const auto tMCStart{std::chrono::steady_clock::now()};
 
         for (int swp = 0; swp < sweepToWrite*sweep_multiple; swp++) {
             // std::cout<<"swp="<<swp<<std::endl;
-            execute_mc_one_sweep(v0_Curr,v1_Curr,v2_Curr,eta_H_Curr,UCurr,v0_Next,v1_Next,v2_Next,eta_H_Next,fls,swp);
+            double  U_time=0;
+           double proposal_time=0;
+           double rand_time=0;
+            double acc_reject_time=0;
+            execute_mc_one_sweep(v0_Curr,v1_Curr,v2_Curr,eta_H_Curr,UCurr,v0_Next,v1_Next,v2_Next,eta_H_Next,U_time,  proposal_time,rand_time,acc_reject_time);
+
+            U_time_total+=U_time;
+            proposal_time_total+=proposal_time;
+            rand_time_total+=rand_time;
+            acc_reject_time_total+=acc_reject_time;
+
+            t_cpy_Start=std::chrono::steady_clock::now();
             if(swp%sweep_multiple==0)
             {
                 int swp_out=swp/sweep_multiple;
@@ -278,6 +419,10 @@ void mc_computation::execute_mc(const std::shared_ptr<double[]>& v0Vec,const std
                 std::memcpy(v2_data_ptr.get()+swp_out*elemNumTot_v,v2_Curr.get(),elemNumTot_v*sizeof(double));
                 std::memcpy(eta_H_data_ptr.get()+swp_out*elemNumTot_eta_H,eta_H_Curr.get(),elemNumTot_eta_H*sizeof(double ));
             }//end swp mod
+
+            t_cpy_End=std::chrono::steady_clock::now();
+            cpy_elapsed = std::chrono::duration<double>(t_cpy_End - t_cpy_Start);
+            total_cpy_Elapsed+=cpy_elapsed;
 
         }//end sweep for
         int sweepEnd = sweepStart + sweepToWrite*sweep_multiple - 1;
@@ -292,6 +437,7 @@ void mc_computation::execute_mc(const std::shared_ptr<double[]>& v0Vec,const std
 
         std::string out_eta_H_PickleFileName=out_eta_H_path+"/"+fileNameMiddle+".eta_H.pkl";
 
+        auto t_write2pkl_Start= std::chrono::steady_clock::now();
         save_array_to_pickle(U_data_ptr.get(),sweepToWrite,out_U_PickleFileName);
 
         save_array_to_pickle(v0_data_ptr.get(),sweepToWrite * elemNumTot_v,out_v0_PickleFileName);
@@ -299,6 +445,11 @@ void mc_computation::execute_mc(const std::shared_ptr<double[]>& v0Vec,const std
         save_array_to_pickle(v2_data_ptr.get(),sweepToWrite * elemNumTot_v,out_v2_PickleFileName);
 
         save_array_to_pickle(eta_H_data_ptr.get(),sweepToWrite * elemNumTot_eta_H,out_eta_H_PickleFileName);
+        auto t_write2pkl_End= std::chrono::steady_clock::now();
+        auto write2pkl_elapsed = std::chrono::duration<double>(t_write2pkl_End- t_write2pkl_Start);
+        total_write2pkl_Elapsed+=write2pkl_elapsed;
+
+
         const auto tMCEnd{std::chrono::steady_clock::now()};
         const std::chrono::duration<double> elapsed_secondsAll{tMCEnd - tMCStart};
         std::cout << "flush " + std::to_string(flushEnd)  + ": "
@@ -306,6 +457,14 @@ void mc_computation::execute_mc(const std::shared_ptr<double[]>& v0Vec,const std
 
     }//end flush for loop
     std::cout << "mc executed for " << flushNum << " flushes." << std::endl;
+    std::cout<<"U_time_total: "<<U_time_total<<" s"<<std::endl;
+    std::cout<<"proposal_time_total: "<<proposal_time_total<<" s"<<std::endl;
+    std::cout<<"rand_time_total: "<<rand_time_total<<" s"<<std::endl;
+    std::cout<<"acc_reject_time_total: "<<acc_reject_time_total<<" s"<<std::endl;
+    std::cout<<"cpy_time_total: "<<total_cpy_Elapsed.count()<<" s"<<std::endl;
+    std::cout<<"write2pkl_time_total: "<<total_write2pkl_Elapsed.count()<<" s"<<std::endl;
+
+    std::cout<<"U_data_ptr[80]="<<U_data_ptr[80]<<std::endl;
 
 }
 // void mc_computation::save_array_to_pickle(double *ptr,const int& size,const std::string& filename){

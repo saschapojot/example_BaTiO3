@@ -36,9 +36,11 @@ namespace np = boost::python::numpy;
 
 class mc_computation
 {
-
+//set seed 10
+private:
+    int seed=10;
 public:
-    mc_computation(const std::string &cppInParamsFileName): e2(std::random_device{}()),distUnif01(0.0, 1.0)
+    mc_computation(const std::string &cppInParamsFileName): e2(seed),distUnif01(0.0, 1.0)
     {
         std::ifstream file(cppInParamsFileName);
         if (!file.is_open()) {
@@ -151,7 +153,7 @@ public:
                 paramCounter++;
                 std::cout << "h=" << h << std::endl;
                 this->h_eta_H=h;
-                this->h_v=500*h;
+                this->h_v=10*h;
                 continue;
             }// end h
 
@@ -164,6 +166,15 @@ public:
 
                 continue;
             }//end sweep_multiple
+
+            //read xiVec
+            if(paramCounter==11){
+                iss>>xiVecStr;
+                paramCounter++;
+                std::cout << "xiVecStr=" << xiVecStr << std::endl;
+
+                continue;
+            }//end xiVec
 
         }//end while
 
@@ -250,7 +261,7 @@ public:
     void execute_mc_one_sweep(std::shared_ptr<double[]>& v0_Curr,std::shared_ptr<double[]>&v1_Curr,std::shared_ptr<double[]>&v2_Curr,
         std::shared_ptr<double[]>& eta_H_Curr,double &UCurr,
         std::shared_ptr<double[]>&v0_Next,std::shared_ptr<double[]>& v1_Next, std::shared_ptr<double[]>&v2_Next,std::shared_ptr<double[]>&eta_H_Next
-        ,const int &fls, const int& swp);
+        , double &U_time, double& proposal_time,double &rand_time,double &acc_reject_time);
 
     void execute_mc(const std::shared_ptr<double[]>& v0Vec,const std::shared_ptr<double[]>& v1Vec, const std::shared_ptr<double[]>& v2Vec,const std::shared_ptr<double[]>& eta_HVec, const int & flushNum);
 
@@ -302,6 +313,7 @@ public:
 
     std::string coefsToPotFunc;
     std::string potFuncName;
+    std::string xiVecStr;
 
     // int mcNum_1sweep;
     std::ranlux24_base e2;

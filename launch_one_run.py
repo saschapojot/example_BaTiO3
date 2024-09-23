@@ -91,7 +91,8 @@ lambdaStr=jsonDataFromConf["lambda"]
 B100Str=jsonDataFromConf["B100"]
 B111Str=jsonDataFromConf["B111"]
 B412Str=jsonDataFromConf["B412"]
-
+xiVecStr=jsonDataFromConf["xiVec"]
+# print("xiVecStr="+str(xiVecStr))
 coefsStr=jsonDataFromConf["coefs"]+","+str(N)+","+lambdaStr+","+B100Str+","+B111Str+","+B412Str
 newFlushNum=jsonFromSummary["newFlushNum"]
 TDirRoot=jsonFromSummary["TDirRoot"]
@@ -113,7 +114,8 @@ params2cppInFile=[
     TDirRoot+"\n",
     U_dist_dataDir+"\n",
     hStr+"\n",
-    sweep_multipleStr+"\n"
+    sweep_multipleStr+"\n",
+    xiVecStr+"\n"
 
 
 ]

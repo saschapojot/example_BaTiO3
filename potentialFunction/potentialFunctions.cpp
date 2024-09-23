@@ -231,6 +231,12 @@ public:
         B601_val = B412_val;
         B610_val = B412_val;
 
+        this->N_power_5=N*N*N*N*N;
+        this->N_power_4=N*N*N*N;
+        this->N_power_3=N*N*N;
+        this->N_power_2=N*N;
+        this->_3_power_2=3*3;
+
         u0 = std::shared_ptr<double[]>(new double[elemNumTot_u], std::default_delete<double[]>());
         u1 = std::shared_ptr<double[]>(new double[elemNumTot_u], std::default_delete<double[]>());
         u2 = std::shared_ptr<double[]>(new double[elemNumTot_u], std::default_delete<double[]>());
@@ -346,41 +352,78 @@ public:
     double E_dpl()
     {
         double val = 0;
+        int Q_elem_ind_part1;
+        int Q_elem_ind_part2;
+        int Q_elem_ind_part3;
+        int Q_elem_ind_part4;
+        int Q_elem_ind_part5;
+        int Q_elem_ind_part6;
+        int Q_elem_ind_part7;
+        int Q_elem_ind;
+        int u_left_ind;
+        int u_right_ind;
+
+        int u_left_ind_part1;
+        int u_left_ind_part2;
+        int u_right_ind_part1;
+        int u_right_ind_part2;
+        // std::shared_ptr<double[]> u_left_ptr;
+        // std::shared_ptr<double[]> u_right_ptr;
+
+        double Q_elem_val;
+        double u_left_elem_val ;
+        double u_right_elem_val;
 
         for (int i1 = 0; i1 < N; i1++)
         {
+
+            Q_elem_ind_part1=i1 * (N_power_5 * _3_power_2);
+            u_left_ind_part1=i1 * N_power_2;
+
             for (int j1 = 0; j1 < N; j1++)
-            {
+            { Q_elem_ind_part2=j1 * (N_power_4 * _3_power_2);
+                u_left_ind_part2=j1 * N;
+
                 for (int k1 = 0; k1 < N; k1++)
-                {
+                { Q_elem_ind_part3=k1 * (N_power_3 * _3_power_2);
+
                     for (int i2 = 0; i2 < N; i2++)
-                    {
+                    {   Q_elem_ind_part4=i2 * (N_power_2 * _3_power_2) ;
+                        u_right_ind_part1=i2 * N_power_2;
+
                         for (int j2 = 0; j2 < N; j2++)
-                        {
+                        { Q_elem_ind_part5=j2 * (N * _3_power_2);
+                            u_right_ind_part2=j2 * N ;
                             for (int k2 = 0; k2 < N; k2++)
-                            {
+                            { Q_elem_ind_part6=k2 * (_3_power_2);
                                 for (int alpha = 0; alpha < 3; alpha++)
-                                {
+                                {   Q_elem_ind_part7=alpha * 3;
                                     for (int beta = 0; beta < 3; beta++)
                                     {
-                                        int Q_elem_ind = i1 * (N * N * N * N * N * 3 * 3) +
-                                            j1 * (N * N * N * N * 3 * 3) +
-                                            k1 * (N * N * N * 3 * 3) +
-                                            i2 * (N * N * 3 * 3) +
-                                            j2 * (N * 3 * 3) +
-                                            k2 * (3 * 3) +
-                                            alpha * 3 +
-                                            beta;
-                                        int u_left_ind = i1 * N * N + j1 * N + k1;
-                                        int u_right_ind = i2 * N * N + j2 * N + k2;
+                                         // Q_elem_ind = i1 * (N_power_5 * _3_power_2) +//part1
+                                         //    j1 * (N_power_4 * _3_power_2) +//part2
+                                         //    k1 * (N_power_3 * _3_power_2) +//part3
+                                         //    i2 * (N_power_2 * _3_power_2) +//part4
+                                         //    j2 * (N * _3_power_2) +//part5
+                                         //    k2 * (_3_power_2) +//part6
+                                         //    alpha * 3 +//part7
+                                         //    beta;//part8
+                                        Q_elem_ind=Q_elem_ind_part1+Q_elem_ind_part2+Q_elem_ind_part3
+                                                +Q_elem_ind_part4+Q_elem_ind_part5+Q_elem_ind_part6
+                                                + Q_elem_ind_part7+beta;//beta is part8
+                                        //u_left_ind=i1 * N_power_2+j1 * N+k1;
+                                        u_left_ind = u_left_ind_part1 + u_left_ind_part2+ k1;
+                                         // u_right_ind = i2 * N_power_2+ j2 * N + k2;
+                                        u_right_ind=u_right_ind_part1+u_right_ind_part2+k2;
 
-                                        double Q_elem_val = Q[Q_elem_ind];
 
-                                        std::shared_ptr<double[]> u_left_ptr = ptr2_u0u1u2[alpha];
-                                        std::shared_ptr<double[]> u_right_ptr = ptr2_u0u1u2[beta];
+                                        Q_elem_val = Q[Q_elem_ind];
 
-                                        double u_left_elem_val = u_left_ptr[u_left_ind];
-                                        double u_right_elem_val = u_right_ptr[u_right_ind];
+                                         u_left_ptr = ptr2_u0u1u2[alpha];
+                                         u_right_ptr = ptr2_u0u1u2[beta];
+
+                                        u_left_elem_val = u_left_ptr[u_left_ind];
+                                        u_right_elem_val = u_right_ptr[u_right_ind];
                                         val += Q_elem_val * u_left_elem_val * u_right_elem_val;
                                     } //end beta
                                 } // end alpha
@@ -509,24 +552,42 @@ public:
     //short-range energy, 1NN term
     double E_short_1NN()
     {
+        int ind_u_left ;
+        int ind_u_right;
+
+        int ind_u_left_part1;
+        int ind_u_left_part2;
+
+        int ind_u_right_part1;
+        int ind_u_right_part2;
+
+        // std::shared_ptr<double[]> u_left_ptr;
+        // std::shared_ptr<double[]> u_right_ptr;
+        double elem_left;
+        double elem_right;
+
         double val1 = 0; //term 1NN1
         for (int n0 = 0; n0 < N; n0++)
-        {
+        {ind_u_left_part1=n0 * N_power_2;
             for (int n1 = 0; n1 < N; n1++)
-            {
+            {ind_u_left_part2=n1*N;
                 for (int n2 = 0; n2 < N; n2++)
                 {
+                    ind_u_left=ind_u_left_part1+ind_u_left_part2+n2;
+                    ind_u_right=ind_u_left_part1+ind_u_left_part2+(n2 + 1) % N;
                     for (int alpha = 0; alpha < 3; alpha++)
                     {
-                        int ind_u_left = n0 * N * N + n1 * N + n2;
-                        int int_u_right = n0 * N * N + n1 * N + (n2 + 1) % N;
+                         // ind_u_left = n0 * N * N + n1 * N + n2;
+
+                        // int_u_right = n0 * N * N + n1 * N + (n2 + 1) % N;
 
 
-                        std::shared_ptr<double[]> u_left_ptr = ptr2_u0u1u2[alpha];
-                        std::shared_ptr<double[]> u_right_ptr = ptr2_u0u1u2[alpha];
 
-                        double elem_left = u_left_ptr[ind_u_left];
-                        double elem_right = u_right_ptr[int_u_right];
+                         u_left_ptr = ptr2_u0u1u2[alpha];
+                         u_right_ptr = ptr2_u0u1u2[alpha];
+
+                        elem_left = u_left_ptr[ind_u_left];
+                         elem_right = u_right_ptr[ind_u_right];
 
                         val1 += j2_val * elem_left * elem_right;
                     } //end alpha
@@ -537,21 +598,24 @@ public:
 
         double val2 = 0; //term 1NN2
         for (int n0 = 0; n0 < N; n0++)
-        {
+        {ind_u_left_part1=n0 * N_power_2;
             for (int n1 = 0; n1 < N; n1++)
-            {
+            {ind_u_left_part2=n1*N;
+                ind_u_right_part2=((n1 + 1) % N) * N;
                 for (int n2 = 0; n2 < N; n2++)
-                {
+                {ind_u_left=ind_u_left_part1+ind_u_left_part2+n2;
+                    ind_u_right=ind_u_left_part1+ind_u_right_part2+n2;
                     for (int alpha = 0; alpha < 3; alpha++)
                     {
-                        int ind_u_left = n0 * N * N + n1 * N + n2;
-                        int ind_u_right = n0 * N * N + ((n1 + 1) % N) * N + n2;
+                         // ind_u_left = n0 * N * N + n1 * N + n2;
 
-                        std::shared_ptr<double[]> u_left_ptr = ptr2_u0u1u2[alpha];
-                        std::shared_ptr<double[]> u_right_ptr = ptr2_u0u1u2[alpha];
+                         // ind_u_right = n0 * N * N + ((n1 + 1) % N) * N + n2;
 
-                        double elem_left = u_left_ptr[ind_u_left];
-                        double elem_right = u_right_ptr[ind_u_right];
+                         u_left_ptr = ptr2_u0u1u2[alpha];
+                         u_right_ptr = ptr2_u0u1u2[alpha];
+
+                         elem_left = u_left_ptr[ind_u_left];
+                         elem_right = u_right_ptr[ind_u_right];
                         val2 += j2_val * elem_left * elem_right;
                     } //end alpha
                 } //end n2
@@ -561,22 +625,24 @@ public:
         double val3 = 0; //term 1NN3
 
         for (int n0 = 0; n0 < N; n0++)
-        {
+        {ind_u_left_part1=n0 * N_power_2;
+            ind_u_right_part1=((n0+1)%N)*N_power_2;
             for (int n1 = 0; n1 < N; n1++)
-            {
+            {ind_u_left_part2=n1*N;
                 for (int n2 = 0; n2 < N; n2++)
-                {
+                {ind_u_left=ind_u_left_part1+ind_u_left_part2+n2;
+                    ind_u_right=ind_u_right_part1+ind_u_left_part2+n2;
                     for (int alpha = 0; alpha < 3; alpha++)
                     {
-                        int ind_u_left = n0 * N * N + n1 * N + n2;
-                        int ind_u_right = ((n0 + 1) % N) * N * N + n1 * N + n2;
+                        // ind_u_left = n0 * N * N + n1 * N + n2;
+                         // ind_u_right = ((n0 + 1) % N) * N * N + n1 * N + n2;
 
-                        std::shared_ptr<double[]> u_left_ptr = ptr2_u0u1u2[alpha];
+                        u_left_ptr = ptr2_u0u1u2[alpha];
 
-                        std::shared_ptr<double[]> u_right_ptr = ptr2_u0u1u2[alpha];
+                         u_right_ptr = ptr2_u0u1u2[alpha];
 
-                        double elem_left = u_left_ptr[ind_u_left];
-                        double elem_right = u_right_ptr[ind_u_right];
+                         elem_left = u_left_ptr[ind_u_left];
+                        elem_right = u_right_ptr[ind_u_right];
 
                         val3 += j2_val * elem_left * elem_right;
                     } //end alpha
@@ -590,43 +656,69 @@ public:
     double E_short_2NN()
     {
         double val1 = 0; //term 2NN1
+        // std::shared_ptr<double[]> u_left_ptr;
+        // std::shared_ptr<double[]> u_right_ptr;
+        int m0 ;
+        int left_ind;
+        int right_ind;
+        int left_ind_part1;
+        int left_ind_part2;
+        int right_ind_part1;
+        int right_ind_part2;
+        double elem_left ;
+        double elem_right;
+        double m1_double;
+        double n1_double;
+        double m2_double;
+        double n2_double;
+        double J;
         for (int alpha = 0; alpha < 3; alpha++)
         {
+            u_left_ptr = ptr2_u0u1u2[alpha];
             for (int beta = 0; beta < 3; beta++)
             {
+                u_right_ptr = ptr2_u0u1u2[beta];
                 for (int n0 = 0; n0 < N; n0++)
                 {
+                    m0 = n0;
+                    left_ind_part1=n0*N_power_2;
+                    right_ind_part1=m0*N_power_2;
                     for (int n1 = 0; n1 < N; n1++)
                     {
+                        left_ind_part2=n1*N;
                         for (int n2 = 0; n2 < N; n2++)
                         {
+                            left_ind=left_ind_part1+left_ind_part2+n2;
                             for (int m1 : {python_mod(n1 - 1, N), python_mod(n1 + 1, N)})
                             {
+                                right_ind_part2=m1*N;
                                 for (int m2 : {python_mod(n2 - 1, N), python_mod(n2 + 1, N)})
                                 {
-                                    std::shared_ptr<double[]> u_left_ptr = ptr2_u0u1u2[alpha];
-                                    std::shared_ptr<double[]> u_right_ptr = ptr2_u0u1u2[beta];
+                                     // u_left_ptr = ptr2_u0u1u2[alpha];
+                                     // u_right_ptr = ptr2_u0u1u2[beta];
 
 
-                                    int m0 = n0;
-                                    int left_ind = n0 * N * N + n1 * N + n2;
-                                    int right_ind = m0 * N * N + m1 * N + m2;
+                                   // m0 = n0;
+                                     // left_ind = n0 * N * N + n1 * N + n2;
+                                    // left_ind=left_ind_part1+left_ind_part2+n2;
+                                     // right_ind = m0 * N * N + m1 * N + m2;
+                                    right_ind=right_ind_part1+right_ind_part2+m2;
 
-                                    double elem_left = u_left_ptr[left_ind];
-                                    double elem_right = u_right_ptr[right_ind];
+                                     elem_left = u_left_ptr[left_ind];
+                                     elem_right = u_right_ptr[right_ind];
 
                                     R_hat[0] = 0.0;
 
-                                    double m1_double = static_cast<double>(m1);
-                                    double n1_double = static_cast<double>(n1);
+                                    m1_double = static_cast<double>(m1);
+                                    n1_double = static_cast<double>(n1);
 
-                                    double m2_double = static_cast<double>(m2);
-                                    double n2_double = static_cast<double>(n2);
+                                    m2_double = static_cast<double>(m2);
+                                     n2_double = static_cast<double>(n2);
 
                                     R_hat[1] = (m1_double - n1_double) / std::sqrt(2.0);
                                     R_hat[2] = (m2_double - n2_double) / std::sqrt(2.0);
 
-                                    double J = (j4_val + std::sqrt(2.0) * (j3_val - j4_val) * std::abs(R_hat[alpha])) *
+                                     J = (j4_val + std::sqrt(2.0) * (j3_val - j4_val) * std::abs(R_hat[alpha])) *
                                         delta(alpha, beta)
                                         + 2.0 * j5_val * R_hat[alpha] * R_hat[beta] * (1 - delta(alpha, beta));
 
@@ -643,41 +735,53 @@ public:
 
 
         double val2 = 0; //term 2NN2
+        int m1;
+        double m0_double;
+        double n0_double;
 
         for (int alpha = 0; alpha < 3; alpha++)
         {
+            u_left_ptr = ptr2_u0u1u2[alpha];
             for (int beta = 0; beta < 3; beta++)
             {
+                u_right_ptr = ptr2_u0u1u2[beta];
                 for (int n0 = 0; n0 < N; n0++)
                 {
+                    left_ind_part1=n0*N_power_2;
                     for (int n1 = 0; n1 < N; n1++)
                     {
+                        m1 = n1;
+                        left_ind_part2=n1*N;
+                        right_ind_part2=m1*N;
                         for (int n2 = 0; n2 < N; n2++)
                         {
+                            left_ind = left_ind_part1+ left_ind_part2 + n2;
                             for (int m0 : {python_mod(n0 - 1, N), python_mod(n0 + 1, N)})
                             {
+                                right_ind_part1=m0*N_power_2;
                                 for (int m2 : {python_mod(n2 - 1, N), python_mod(n2 + 1, N)})
                                 {
-                                    std::shared_ptr<double[]> u_left_ptr = ptr2_u0u1u2[alpha];
-                                    std::shared_ptr<double[]> u_right_ptr = ptr2_u0u1u2[beta];
+                                   // u_left_ptr = ptr2_u0u1u2[alpha];
+                                     // u_right_ptr = ptr2_u0u1u2[beta];
 
-                                    int m1 = n1;
-                                    int left_ind = n0 * N * N + n1 * N + n2;
-                                    int right_ind = m0 * N * N + m1 * N + m2;
+                                    // m1 = n1;
+                                    // left_ind = n0 * N * N + n1 * N + n2;
+                                     // right_ind = m0 * N * N + m1 * N + m2;
+                                    right_ind = right_ind_part1 + right_ind_part2 + m2;
 
-                                    double elem_left = u_left_ptr[left_ind];
-                                    double elem_right = u_right_ptr[right_ind];
+                                    elem_left = u_left_ptr[left_ind];
+                                     elem_right = u_right_ptr[right_ind];
 
-                                    double m0_double = static_cast<double>(m0);
-                                    double n0_double = static_cast<double>(n0);
-                                    double m2_double = static_cast<double>(m2);
-                                    double n2_double = static_cast<double>(n2);
+                                     m0_double = static_cast<double>(m0);
+                                     n0_double = static_cast<double>(n0);
+                                    m2_double = static_cast<double>(m2);
+                                    n2_double = static_cast<double>(n2);
 
                                     R_hat[0] = (m0_double - n0_double) / std::sqrt(2.0);
                                     R_hat[1] = 0.0;
                                     R_hat[2] = (m2_double - n2_double) / std::sqrt(2.0);
 
-                                    double J = (j4_val + std::sqrt(2.0) * (j3_val - j4_val) * std::abs(R_hat[alpha])) *
+                                     J = (j4_val + std::sqrt(2.0) * (j3_val - j4_val) * std::abs(R_hat[alpha])) *
                                         delta(alpha, beta)
                                         + 2.0 * j5_val * R_hat[alpha] * R_hat[beta] * (1 - delta(alpha, beta));
 
@@ -694,34 +798,41 @@ public:
 
 
         double val3 = 0; //term 2NN3
+        int m2;
+
         for (int alpha = 0; alpha < 3; alpha++)
-        {
+        {u_left_ptr = ptr2_u0u1u2[alpha];
             for (int beta = 0; beta < 3; beta++)
-            {
+            {u_right_ptr = ptr2_u0u1u2[beta];
                 for (int n0 = 0; n0 < N; n0++)
                 {
+                    left_ind_part1=n0*N_power_2;
                     for (int n1 = 0; n1 < N; n1++)
                     {
+                        left_ind_part2=n1*N;
                         for (int n2 = 0; n2 < N; n2++)
                         {
+                            left_ind =left_ind_part1 + left_ind_part2 + n2;
                             for (int m0 : {python_mod(n0 - 1, N), python_mod(n0 + 1, N)})
                             {
+                                right_ind_part1=m0*N_power_2;
                                 for (int m1 : {python_mod(n1 - 1, N), python_mod(n1 + 1, N)})
                                 {
-                                    std::shared_ptr<double[]> u_left_ptr = ptr2_u0u1u2[alpha];
-                                    std::shared_ptr<double[]> u_right_ptr = ptr2_u0u1u2[beta];
+                                  // u_left_ptr = ptr2_u0u1u2[alpha];
+                                     // u_right_ptr = ptr2_u0u1u2[beta];
 
-                                    int m2 = n2;
-                                    int left_ind = n0 * N * N + n1 * N + n2;
-                                    int right_ind = m0 * N * N + m1 * N + m2;
+                                    m2 = n2;
+                                   // left_ind = n0 * N * N + n1 * N + n2;
+                                   // right_ind = m0 * N * N + m1 * N + m2;
+                                    right_ind = right_ind_part1 + m1 * N + m2;
 
-                                    double elem_left = u_left_ptr[left_ind];
-                                    double elem_right = u_right_ptr[right_ind];
+                                     elem_left = u_left_ptr[left_ind];
+                                     elem_right = u_right_ptr[right_ind];
 
-                                    double m0_double = static_cast<double>(m0);
-                                    double n0_double = static_cast<double>(n0);
-                                    double m1_double = static_cast<double>(m1);
-                                    double n1_double = static_cast<double>(n1);
+                                     m0_double = static_cast<double>(m0);
+                                     n0_double = static_cast<double>(n0);
+                                     m1_double = static_cast<double>(m1);
+                                    n1_double = static_cast<double>(n1);
 
                                     R_hat[0] = (m0_double - n0_double) / std::sqrt(2.0);
                                     R_hat[1] = (m1_double - n1_double) / std::sqrt(2.0);
@@ -750,43 +861,69 @@ public:
     double E_short_3NN()
     {
         double val = 0;
+        // std::shared_ptr<double[]> u_left_ptr;
+        // std::shared_ptr<double[]> u_right_ptr;
+        int left_ind;
+        int right_ind;
+        double elem_left;
+        double elem_right;
+        double m0_double;
+        double n0_double;
+        double m1_double;
+        double n1_double;
+        double m2_double;
+        double n2_double;
+        double J ;
+        int  left_ind_part1;
+        int  left_ind_part2;
+        int  right_ind_part1;
+        int  right_ind_part2;
+
 
         for (int alpha = 0; alpha < 3; alpha++)
         {
+            u_left_ptr = ptr2_u0u1u2[alpha];
             for (int beta = 0; beta < 3; beta++)
             {
+                u_right_ptr = ptr2_u0u1u2[beta];
                 for (int n0 = 0; n0 < N; n0++)
                 {
+                    left_ind_part1=n0*N_power_2;
                     for (int n1 = 0; n1 < N; n1++)
                     {
+                        left_ind_part2=n1*N;
                         for (int n2 = 0; n2 < N; n2++)
                         {
+                            left_ind = left_ind_part1 + left_ind_part2+ n2;
                             for (int m0 : {python_mod(n0 - 1, N), python_mod(n0 + 1, N)})
                             {
+                                right_ind_part1=m0*N_power_2;
                                 for (int m1 : {python_mod(n1 - 1, N), python_mod(n1 + 1, N)})
                                 {
+                                    right_ind_part2=m1*N;
                                     for (int m2 : {python_mod(n2 - 1, N), python_mod(n2 + 1, N)})
                                     {
-                                        std::shared_ptr<double[]> u_left_ptr = ptr2_u0u1u2[alpha];
-                                        std::shared_ptr<double[]> u_right_ptr = ptr2_u0u1u2[beta];
-                                        int left_ind = n0 * N * N + n1 * N + n2;
-                                        int right_ind = m0 * N * N + m1 * N + m2;
+                                         // u_left_ptr = ptr2_u0u1u2[alpha];
+                                         // u_right_ptr = ptr2_u0u1u2[beta];
+                                        // left_ind = n0 * N * N + n1 * N + n2;
+                                         // right_ind = m0 * N * N + m1 * N + m2;
+                                        right_ind = right_ind_part1 + right_ind_part2 + m2;
 
-                                        double elem_left = u_left_ptr[left_ind];
-                                        double elem_right = u_right_ptr[right_ind];
+                                         elem_left = u_left_ptr[left_ind];
+                                        elem_right = u_right_ptr[right_ind];
 
-                                        double m0_double = static_cast<double>(m0);
-                                        double n0_double = static_cast<double>(n0);
-                                        double m1_double = static_cast<double>(m1);
-                                        double n1_double = static_cast<double>(n1);
-                                        double m2_double = static_cast<double>(m2);
-                                        double n2_double = static_cast<double>(n2);
+                                        m0_double = static_cast<double>(m0);
+                                        n0_double = static_cast<double>(n0);
+                                       m1_double = static_cast<double>(m1);
+                                         n1_double = static_cast<double>(n1);
+                                        m2_double = static_cast<double>(m2);
+                                         n2_double = static_cast<double>(n2);
 
                                         R_hat[0] = (m0_double - n0_double) / std::sqrt(3.0);
                                         R_hat[1] = (m1_double - n1_double) / std::sqrt(3.0);
                                         R_hat[2] = (m2_double - n2_double) / std::sqrt(3.0);
 
-                                        double J = j6_val * delta(alpha, beta) + 3.0 * j7_val * R_hat[alpha] * R_hat[
+                                         J = j6_val * delta(alpha, beta) + 3.0 * j7_val * R_hat[alpha] * R_hat[
                                             beta] * (1 - delta(alpha, beta));
                                         val += J * elem_left * elem_right;
                                     } //end m2
@@ -848,16 +985,25 @@ public:
 
         //inhomogeneous part
         double E_elas_I1 = 0;
+        int i_plus_1;
+        int i_minus_1;
+        int j_plus_1;
+        int j_minus_1;
+
         for (int i = 0; i < N; i++)
         {
+            i_plus_1 = python_mod(i + 1, N);
+            i_minus_1 = python_mod(i - 1, N);
             for (int j = 0; j < N; j++)
             {
+                j_plus_1 = python_mod(j + 1, N);
+                j_minus_1 = python_mod(j - 1, N);
                 for (int k = 0; k < N; k++)
                 {
-                    int i_plus_1 = python_mod(i + 1, N);
-                    int i_minus_1 = python_mod(i - 1, N);
-                    int j_plus_1 = python_mod(j + 1, N);
-                    int j_minus_1 = python_mod(j - 1, N);
+                     // i_plus_1 = python_mod(i + 1, N);
+                     // i_minus_1 = python_mod(i - 1, N);
+                    // j_plus_1 = python_mod(j + 1, N);
+                    // j_minus_1 = python_mod(j - 1, N);
 
                     int ind_Ba = 0;
 
@@ -1175,6 +1321,13 @@ public:
     double gamma12_val;
     double gamma44_val;
 
+    int N_power_5;
+    int N_power_4;
+    int N_power_3;
+    int N_power_2;
+    int _3_power_2;
+
+
     double B100_val, B111_val, B122_val;
     double B200_val, B211_val, B222_val;
     double B300_val, B311_val, B322_val;
@@ -1204,6 +1357,8 @@ public:
     std::shared_ptr<std::shared_ptr<double[]>[]> ptr2_u0u1u2;
 
     std::shared_ptr<double[]> R_hat;
+    std::shared_ptr<double[]> u_left_ptr;
+    std::shared_ptr<double[]> u_right_ptr;
 };
 
 

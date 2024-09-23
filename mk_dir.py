@@ -50,7 +50,7 @@ xi_Ba=0.2
 xi_Ti=0.76
 xi_O_parallel=-0.53
 xi_O_perpendicular=-0.21
-
+xiVec=[xi_Ba,xi_Ti,xi_O_parallel,xi_O_perpendicular,xi_O_perpendicular]
 vals2Potential=[kappa2_val,alpha_val,gamma_val,
                 j1_val,j2_val,
                 j3_val,j4_val,j5_val,
@@ -76,9 +76,9 @@ def format_using_decimal(value, precision=10):
 
 formated_vals2Potential=[format_using_decimal(val) for val in vals2Potential]
 str_formated_vals2Potential=','.join(map(str, formated_vals2Potential))
+# xiVec=[format_using_decimal(elem) for elem in xiVec]
 
-
-TVals=[290,300]
+TVals=[290,300,340]
 N=2
 dataRoot="./dataAll/"
 dataOutDir=dataRoot+"/dataAllUnitCell"+str(N)+"/"
@@ -135,7 +135,7 @@ def contents_to_conf(k):
         "\n",
         "#within each flush,  sweep_to_write mc computations are executed\n",
         "\n",
-        "default_flush_num=150\n",
+        "default_flush_num=2\n",
         "\n",
         "h=5e-2\n",
         "\n",
@@ -147,7 +147,9 @@ def contents_to_conf(k):
         "\n",
         "B111="+format_using_decimal(B111)+"\n",
         "\n",
-        "B412="+format_using_decimal(B412)+"\n"
+        "B412="+format_using_decimal(B412)+"\n",
+        "\n",
+        "xiVec="+str(xiVec)+"\n"
 
 
 
