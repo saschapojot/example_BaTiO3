@@ -43,7 +43,7 @@ xi_O_parallel=-0.53
 xi_O_perpendicular=-0.21
 
 xiVec=np.array([xi_Ba,xi_Ti,xi_O_parallel,xi_O_perpendicular,xi_O_perpendicular])
-lastFileNum=80
+lastFileNum=20
 def sort_data_files_by_flushEnd(oneDir):
     dataFilesAll=[]
     flushEndAll=[]
@@ -261,6 +261,10 @@ def check_oneDistDataFilesForOneT(v0Dir,v1Dir,v2Dir,i_val,j_val,k_val):
     print("u0_oneUnitCell[-20:]:\n"+str(u0_oneUnitCell[-20:]))
     print("u1_oneUnitCell[-20:]:\n"+str(u1_oneUnitCell[-20:]))
     print("u2_oneUnitCell[-20:]:\n"+str(u2_oneUnitCell[-20:]))
+
+    print("mean(u0_oneUnitCell)="+str(np.mean(u0_oneUnitCell)))
+    print("mean(u1_oneUnitCell)="+str(np.mean(u1_oneUnitCell)))
+    print("mean(u2_oneUnitCell)="+str(np.mean(u2_oneUnitCell)))
 
 
     # sameVec_v0v1v2=[]

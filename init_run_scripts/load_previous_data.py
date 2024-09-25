@@ -59,7 +59,7 @@ def create_v_init_alpha_direction(U_dist_dataDir,alpha):
     """
     #
     random_perturbations=np.random.uniform(-0.1,0.1,5*N**3)
-
+    # print("random_perturbations: "+str(random_perturbations))
     outPath=U_dist_dataDir+"/v"+format_using_decimal(alpha)+"/"
 
     Path(outPath).mkdir(exist_ok=True,parents=True)

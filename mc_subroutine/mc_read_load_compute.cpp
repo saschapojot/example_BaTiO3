@@ -58,15 +58,23 @@ void mc_computation::load_pickle_data(const std::string& filename, std::shared_p
 
 void mc_computation::initialize_v0_v1_v2_eta_H()
 {
+    // std::cout<<"entering initialize_v0_v1_v2_eta_H"<<std::endl;
     std::string name;
     std::string eta_H_inFileName,v0_inFileName, v1_inFileName, v2_inFileName;
     if(this->flushLastFile==-1)
     {
        name= "init";
         eta_H_inFileName=out_eta_H_path+"/eta_H_"+name+".pkl";
+        // std::cout<<"eta_H_inFileName="<<eta_H_inFileName<<std::endl;
+
         v0_inFileName=out_v0_path+"/v0_"+name+".pkl";
         v1_inFileName=out_v1_path+"/v1_"+name+".pkl";
         v2_inFileName=out_v2_path+"/v2_"+name+".pkl";
+
+        this->load_pickle_data(eta_H_inFileName,eta_H_init,6);
+        this->load_pickle_data(v0_inFileName,v0_init,elemNumTot_v);
+        this->load_pickle_data(v1_inFileName,v1_init,elemNumTot_v);
+        this->load_pickle_data(v2_inFileName,v2_init,elemNumTot_v);
     }
     else
     {
@@ -76,29 +84,21 @@ void mc_computation::initialize_v0_v1_v2_eta_H()
         v0_inFileName=out_v0_path+"/"+name+".v0.pkl";
         v1_inFileName=out_v1_path+"/"+name+".v1.pkl";
         v2_inFileName=out_v2_path+"/"+name+".v2.pkl";
+
+        this->load_pickle_data(eta_H_inFileName,eta_H_data_ptr,6*sweepToWrite);
+        std::memcpy(eta_H_init.get(),eta_H_data_ptr.get()+6*(sweepToWrite-1),6*sizeof(double));
+        this->load_pickle_data(v0_inFileName,v0_data_ptr,elemNumTot_v*sweepToWrite);
+        std::memcpy(v0_init.get(),v0_data_ptr.get()+elemNumTot_v*(sweepToWrite-1),elemNumTot_v*sizeof(double));
+
+        this->load_pickle_data(v1_inFileName,v1_data_ptr,elemNumTot_v*sweepToWrite);
+        std::memcpy(v1_init.get(),v1_data_ptr.get()+elemNumTot_v*(sweepToWrite-1),elemNumTot_v*sizeof(double));
+
+        this->load_pickle_data(v2_inFileName,v2_data_ptr,elemNumTot_v*sweepToWrite);
+        std::memcpy(v2_init.get(),v2_data_ptr.get()+elemNumTot_v*(sweepToWrite-1),elemNumTot_v*sizeof(double));
+
     }
 
-    //load eta_H
-    this->load_pickle_data(eta_H_inFileName,eta_H_data_ptr,6*sweepToWrite);
-    std::memcpy(eta_H_init.get(),eta_H_data_ptr.get()+6*(sweepToWrite-1),6*sizeof(double));
-
-    //load v0
-    this->load_pickle_data(v0_inFileName,v0_data_ptr,elemNumTot_v*sweepToWrite);
-    std::memcpy(v0_init.get(),v0_data_ptr.get()+elemNumTot_v*(sweepToWrite-1),elemNumTot_v*sizeof(double));
-
-    //load v1
-    this->load_pickle_data(v1_inFileName,v1_data_ptr,elemNumTot_v*sweepToWrite);
-    std::memcpy(v1_init.get(),v1_data_ptr.get()+elemNumTot_v*(sweepToWrite-1),elemNumTot_v*sizeof(double));
-
-    //load v2
-    this->load_pickle_data(v2_inFileName,v2_data_ptr,elemNumTot_v*sweepToWrite);
-    std::memcpy(v2_init.get(),v2_data_ptr.get()+elemNumTot_v*(sweepToWrite-1),elemNumTot_v*sizeof(double));
-
-
-
-
-
-}
+}//end initialize_v0_v1_v2_eta_H
 
 double mc_computation::generate_nearby_normal(const double & x,const double &sigma)
 {

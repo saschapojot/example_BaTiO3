@@ -212,13 +212,16 @@ public:
         randint_0_5=std::uniform_int_distribution<int>(0,5);
         randint_0_4=std::uniform_int_distribution<int>(0,4);
         // std::cout<<"randint_0_5(e2)="<<randint_0_5(e2)<<std::endl;
-
+        std::cout<<"potFuncName="<<potFuncName<<std::endl;
         std::cout<<"sweepToWrite="<<sweepToWrite<<std::endl;
         // std::cout<<"mcNum_1sweep="<<mcNum_1sweep<<std::endl;
         std::cout<<"newFlushNum="<<newFlushNum<<std::endl;
         std::cout<<"flushLastFile+1="<<flushLastFile+1<<std::endl;
         std::cout<<"TDirRoot="<<TDirRoot<<std::endl;
         std::cout<<"U_dist_dataDir="<<U_dist_dataDir<<std::endl;
+
+        // int num_threads = std::thread::hardware_concurrency();
+        // std::cout<<"num_threads="<<num_threads<<std::endl;
         this->out_U_path=this->U_dist_dataDir+"/U/";
         if (!fs::is_directory(out_U_path) || !fs::exists(out_U_path)) {
             fs::create_directories(out_U_path);
@@ -247,8 +250,18 @@ public:
 
 
         //check potential value
-        // double pot= (*potFuncPtr)(eta_H_init,v0_init,v1_init,v2_init);
-        //  std::cout<<"pot="<<pot<<std::endl;
+        std::shared_ptr<potentialFunction> potFunc_serial_ptr=createPotentialFunction("V_BaTiO3",coefsToPotFunc);
+        std::shared_ptr<potentialFunction> potFunc_parallel_ptr=createPotentialFunction("V_BaTiO3_parallel",coefsToPotFunc);
+        potFunc_serial_ptr->init();
+        potFunc_parallel_ptr->init();
+        this->initialize_v0_v1_v2_eta_H();
+        std::cout<<"eta_H_init[3]="<<eta_H_init[3]<<std::endl;
+        std::cout<<"v0_init[4]="<<v0_init[4]<<std::endl;
+        std::cout<<"serial:"<<std::endl;
+        (*potFunc_serial_ptr)(eta_H_init,v0_init,v1_init,v2_init);
+        std::cout<<"parallel:"<<std::endl;
+        (*potFunc_parallel_ptr)(eta_H_init,v0_init,v1_init,v2_init);
+
     }
 public:
 
