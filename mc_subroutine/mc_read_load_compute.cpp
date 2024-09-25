@@ -202,7 +202,7 @@ void mc_computation::execute_mc_one_sweep(std::shared_ptr<double[]>& v0_Curr,std
         int i=randint_0_N_minus1(e2);
         int j=randint_0_N_minus1(e2);
         int k=randint_0_N_minus1(e2);
-        int q=randint_0_5(e2);
+        int q=randint_0_4(e2);
         const auto t_rand_End= std::chrono::steady_clock::now();
         const auto rand_elapsed = std::chrono::duration<double>(t_rand_End - t_rand_Start);
         total_rand_Elapsed+=rand_elapsed;
@@ -249,7 +249,7 @@ void mc_computation::execute_mc_one_sweep(std::shared_ptr<double[]>& v0_Curr,std
         int i=randint_0_N_minus1(e2);
         int j=randint_0_N_minus1(e2);
         int k=randint_0_N_minus1(e2);
-        int q=randint_0_5(e2);
+        int q=randint_0_4(e2);
         const auto t_rand_End= std::chrono::steady_clock::now();
         const auto rand_elapsed = std::chrono::duration<double>(t_rand_End - t_rand_Start);
         total_rand_Elapsed+=rand_elapsed;
@@ -298,7 +298,7 @@ for(int l=0;l<elemNumTot_v;l++){
     int i=randint_0_N_minus1(e2);
     int j=randint_0_N_minus1(e2);
     int k=randint_0_N_minus1(e2);
-    int q=randint_0_5(e2);
+    int q=randint_0_4(e2);
     const auto t_rand_End= std::chrono::steady_clock::now();
     const auto rand_elapsed = std::chrono::duration<double>(t_rand_End - t_rand_Start);
     total_rand_Elapsed+=rand_elapsed;
@@ -413,6 +413,7 @@ void mc_computation::execute_mc(const std::shared_ptr<double[]>& v0Vec,const std
             if(swp%sweep_multiple==0)
             {
                 int swp_out=swp/sweep_multiple;
+                // std::cout<<"swp_out="<<swp_out<<std::endl;
                 U_data_ptr[swp_out]=UCurr;
                 std::memcpy(v0_data_ptr.get()+swp_out*elemNumTot_v,v0_Curr.get(),elemNumTot_v*sizeof(double));
                 std::memcpy(v1_data_ptr.get()+swp_out*elemNumTot_v,v1_Curr.get(),elemNumTot_v*sizeof(double));
@@ -436,15 +437,15 @@ void mc_computation::execute_mc(const std::shared_ptr<double[]>& v0Vec,const std
         std::string out_v2_PickleFileName=out_v2_path+"/"+fileNameMiddle+".v2.pkl";
 
         std::string out_eta_H_PickleFileName=out_eta_H_path+"/"+fileNameMiddle+".eta_H.pkl";
-
+        // std::cout<<"saving data: "<<std::endl;
         auto t_write2pkl_Start= std::chrono::steady_clock::now();
-        save_array_to_pickle(U_data_ptr.get(),sweepToWrite,out_U_PickleFileName);
+        save_array_to_pickle(U_data_ptr,sweepToWrite,out_U_PickleFileName);
+        // std::cout<<"saved U"<<std::endl;
+        save_array_to_pickle(v0_data_ptr,sweepToWrite * elemNumTot_v,out_v0_PickleFileName);
+        save_array_to_pickle(v1_data_ptr,sweepToWrite * elemNumTot_v,out_v1_PickleFileName);
+        save_array_to_pickle(v2_data_ptr,sweepToWrite * elemNumTot_v,out_v2_PickleFileName);
 
-        save_array_to_pickle(v0_data_ptr.get(),sweepToWrite * elemNumTot_v,out_v0_PickleFileName);
-        save_array_to_pickle(v1_data_ptr.get(),sweepToWrite * elemNumTot_v,out_v1_PickleFileName);
-        save_array_to_pickle(v2_data_ptr.get(),sweepToWrite * elemNumTot_v,out_v2_PickleFileName);
-
-        save_array_to_pickle(eta_H_data_ptr.get(),sweepToWrite * elemNumTot_eta_H,out_eta_H_PickleFileName);
+        save_array_to_pickle(eta_H_data_ptr,sweepToWrite * elemNumTot_eta_H,out_eta_H_PickleFileName);
         auto t_write2pkl_End= std::chrono::steady_clock::now();
         auto write2pkl_elapsed = std::chrono::duration<double>(t_write2pkl_End- t_write2pkl_Start);
         total_write2pkl_Elapsed+=write2pkl_elapsed;
@@ -519,35 +520,83 @@ void mc_computation::execute_mc(const std::shared_ptr<double[]>& v0Vec,const std
 //
 // }
 
-void mc_computation::save_array_to_pickle(double *ptr, const int& size, const std::string& filename) {
-    using namespace boost::python;
-    namespace np = boost::python::numpy;
+void mc_computation::save_array_to_pickle(const std::shared_ptr<double[]> &ptr, const int& size, const std::string& filename) {
+    // using namespace boost::python;
+    // namespace np = boost::python::numpy;
+    //
+    // // Initialize Python interpreter if not already initialized
+    // if (!Py_IsInitialized()) {
+    //     Py_Initialize();
+    //     if (!Py_IsInitialized()) {
+    //         throw std::runtime_error("Failed to initialize Python interpreter");
+    //     }
+    //     np::initialize(); // Initialize NumPy
+    // }
+    //
+    // try {
+    //     // Import the pickle module
+    //     object pickle = import("pickle");
+    //     object pickle_dumps = pickle.attr("dumps");
+    //
+    //     // Convert C++ array to NumPy array using shared_ptr
+    //     np::ndarray numpy_array = np::from_data(
+    //         ptr.get(),                               // Use shared_ptr's raw pointer
+    //         np::dtype::get_builtin<double>(),        // NumPy data type (double)
+    //         boost::python::make_tuple(size),         // Shape of the array (1D array)
+    //         boost::python::make_tuple(sizeof(double)),  // Strides
+    //         object()                                 // Optional base object
+    //     );
+    //
+    //     // Serialize the NumPy array using pickle.dumps
+    //     object serialized_array = pickle_dumps(numpy_array);
+    //
+    //     // Extract the serialized data as a string
+    //     std::string serialized_str = extract<std::string>(serialized_array);
+    //
+    //     // Write the serialized data to a file
+    //     std::ofstream file(filename, std::ios::binary);
+    //     if (!file) {
+    //         throw std::runtime_error("Failed to open file for writing");
+    //     }
+    //     file.write(serialized_str.data(), serialized_str.size());
+    //     file.close();
+    //
+    //     // Debug output (optional)
+    //     // std::cout << "Array serialized and written to file successfully." << std::endl;
+    //
+    // } catch (const error_already_set&) {
+    //     PyErr_Print();
+    //     std::cerr << "Boost.Python error occurred." << std::endl;
+    // } catch (const std::exception& e) {
+    //     std::cerr << "Exception: " << e.what() << std::endl;
+    // }
+    //
+    // // Finalize the Python interpreter at the end of the program, or manage separately
+    // // Py_Finalize();
 
-    // Initialize Python interpreter if not already initialized
-    if (!Py_IsInitialized()) {
-        Py_Initialize();
+    //list
+    using namespace boost::python;
+    try {
+        Py_Initialize();  // Initialize the Python interpreter
         if (!Py_IsInitialized()) {
             throw std::runtime_error("Failed to initialize Python interpreter");
         }
-        np::initialize(); // Initialize NumPy
-    }
 
-    try {
+        // Debug output
+        //        std::cout << "Python interpreter initialized successfully." << std::endl;
+
         // Import the pickle module
         object pickle = import("pickle");
         object pickle_dumps = pickle.attr("dumps");
 
-        // Convert C++ array to NumPy array
-        np::ndarray numpy_array = np::from_data(
-            ptr,                                  // Pointer to the C++ array data
-            np::dtype::get_builtin<double>(),      // NumPy data type (double)
-            boost::python::make_tuple(size),       // Shape of the array (1D array)
-            boost::python::make_tuple(sizeof(double)),  // Strides
-            object()                               // Optional base object
-        );
+        // Create a Python list from the C++ array
+        list py_list;
+        for (std::size_t i = 0; i < size; i+=1) {
+            py_list.append(ptr[i]);
+        }
 
-        // Serialize the NumPy array using pickle.dumps
-        object serialized_array = pickle_dumps(numpy_array);
+        // Serialize the list using pickle.dumps
+        object serialized_array = pickle_dumps(py_list);
 
         // Extract the serialized data as a string
         std::string serialized_str = extract<std::string>(serialized_array);
@@ -560,9 +609,8 @@ void mc_computation::save_array_to_pickle(double *ptr, const int& size, const st
         file.write(serialized_str.data(), serialized_str.size());
         file.close();
 
-        // Debug output (optional)
-        // std::cout << "Array serialized and written to file successfully." << std::endl;
-
+        // Debug output
+        //        std::cout << "Array serialized and written to file successfully." << std::endl;
     } catch (const error_already_set&) {
         PyErr_Print();
         std::cerr << "Boost.Python error occurred." << std::endl;
@@ -570,8 +618,11 @@ void mc_computation::save_array_to_pickle(double *ptr, const int& size, const st
         std::cerr << "Exception: " << e.what() << std::endl;
     }
 
-    // Finalize the Python interpreter at the end of the program, or manage separately
-    // Py_Finalize();
+    if (Py_IsInitialized()) {
+        Py_Finalize();  // Finalize the Python interpreter
+    }
+
+
 }
 void mc_computation::init_and_run()
 {

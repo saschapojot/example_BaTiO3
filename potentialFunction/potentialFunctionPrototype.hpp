@@ -13,6 +13,8 @@
 #include <regex>
 #include <stdexcept>
 #include <string>
+#include <thread>
+#include <vector>
 
 const auto PI=M_PI;
 

@@ -210,6 +210,7 @@ public:
         // std::cout<<"randint_0_N_minus1(e2)="<<randint_0_N_minus1(e2)<<std::endl;
         elemNumTot_eta_H=6;
         randint_0_5=std::uniform_int_distribution<int>(0,5);
+        randint_0_4=std::uniform_int_distribution<int>(0,4);
         // std::cout<<"randint_0_5(e2)="<<randint_0_5(e2)<<std::endl;
 
         std::cout<<"sweepToWrite="<<sweepToWrite<<std::endl;
@@ -268,7 +269,7 @@ public:
     void init_and_run();
 
 
-    void save_array_to_pickle(double *ptr,const int& size,const std::string& filename);
+    void save_array_to_pickle(const std::shared_ptr<double[]> &ptr,const int& size,const std::string& filename);
     void load_pickle_data(const std::string& filename, std::shared_ptr<double[]>& data_ptr, std::size_t size);
 
     void initialize_v0_v1_v2_eta_H();
@@ -319,7 +320,8 @@ public:
     std::ranlux24_base e2;
     std::uniform_real_distribution<> distUnif01;
     std::uniform_int_distribution<int> randint_0_N_minus1;//to update v's ijk
-    std::uniform_int_distribution<int> randint_0_5;//to update eta_H and each atom for v
+    std::uniform_int_distribution<int> randint_0_5;//to update eta_H
+    std::uniform_int_distribution<int>randint_0_4;//to update v
     int sweep_multiple;
 
     //initial value
