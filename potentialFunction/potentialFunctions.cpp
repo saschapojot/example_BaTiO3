@@ -2,6 +2,7 @@
 // Created by polya on 9/12/24.
 //
 
+#include <future>
 #include <boost/python/proxy.hpp>
 #include <sys/stat.h>
 
@@ -276,7 +277,7 @@ public:
         this->v2u(v0, u0);
         this->v2u(v1, u1);
         this->v2u(v2, u2);
-
+        // std::cout<<"Q[1]="<<Q[1]<<std::endl;
         double energy_self = this->E_self(u0, u1, u2);
         std::cout << "energy_self=" << energy_self << std::endl;
 
@@ -540,13 +541,13 @@ public:
     double E_short()
     {
         double energy_short_1NN = E_short_1NN();
-        // std::cout<<"energy_short_1NN="<<energy_short_1NN<<std::endl;
+        std::cout<<"energy_short_1NN="<<energy_short_1NN<<std::endl;
 
         double energy_short_2NN = E_short_2NN();
-        // std::cout<<"energy_short_2NN="<<energy_short_2NN<<std::endl;
+        std::cout<<"energy_short_2NN="<<energy_short_2NN<<std::endl;
 
         double energy_short_3NN = E_short_3NN();
-        // std::cout<<"energy_short_3NN="<<energy_short_3NN<<std::endl;
+        std::cout<<"energy_short_3NN="<<energy_short_3NN<<std::endl;
 
         return energy_short_1NN + energy_short_2NN + energy_short_3NN;
     }
@@ -1399,6 +1400,10 @@ std::shared_ptr<potentialFunction> createPotentialFunction(const std::string& fu
 }
 
 
+
+
+
+
 /////////////////////parallel code
 void V_BaTiO3_parallel::v2u(const std::shared_ptr<double[]>& v, std::shared_ptr<double[]>& u)
 {
@@ -1417,28 +1422,7 @@ void V_BaTiO3_parallel::v2u(const std::shared_ptr<double[]>& v, std::shared_ptr<
 }
 
 
-// Function to initialize the combinations_dpl vector
-void V_BaTiO3_parallel::initialize_combinations_dpl()
-{
-    // Clear and reserve space for combinations_dpl based on N
-    int num_combinations = N * N * N * N * N * N;  // Total number of combinations
-    combinations_dpl.clear();
-    combinations_dpl.reserve(num_combinations);
-    // Fill the combinations_dpl vector with all combinations of i1, j1, k1, i2, j2, k2
-    for (int i1 = 0; i1 < N; ++i1) {
-        for (int j1 = 0; j1 < N; ++j1) {
-            for (int k1 = 0; k1 < N; ++k1) {
-                for (int i2 = 0; i2 < N; ++i2) {
-                    for (int j2 = 0; j2 < N; ++j2) {
-                        for (int k2 = 0; k2 < N; ++k2) {
-                            combinations_dpl.emplace_back(i1, j1, k1, i2, j2, k2);
-                        }//end k2
-                    }//end j2
-                }//end i2
-            }//end k1
-        }//end j1
-    }// end i1
-}//emd initialize_combinations_dpl
+
 
 
 
@@ -1465,11 +1449,11 @@ void V_BaTiO3_parallel::initialize_combinations_dpl()
         B520_val = B412_val;
         B601_val = B412_val;
         B610_val = B412_val;
-
-        this->N_power_5=N*N*N*N*N;
-        this->N_power_4=N*N*N*N;
-        this->N_power_3=N*N*N;
-        this->N_power_2=N*N;
+        this->N_power_6=static_cast<uint64_t>(N)*N*N*N*N*N;
+        this->N_power_5=static_cast<uint64_t>(N)*N*N*N*N;
+        this->N_power_4=static_cast<uint64_t>(N)*N*N*N;
+        this->N_power_3=static_cast<uint64_t>(N)*N*N;
+        this->N_power_2=static_cast<uint64_t>(N)*N;
         this->_3_power_2=3*3;
 
         u0 = std::shared_ptr<double[]>(new double[elemNumTot_u], std::default_delete<double[]>());
@@ -1485,6 +1469,7 @@ void V_BaTiO3_parallel::initialize_combinations_dpl()
 
 
         this->fill_Q();
+
 
         std::cout << "kappa2=" << kappa2_val << ", alpha=" << alpha_val << ", gamma=" << gamma_val
             << ", j1=" << j1_val << ", j2=" << j2_val << ", j3=" << j3_val
@@ -1804,125 +1789,24 @@ double V_BaTiO3_parallel::operator()(const std::shared_ptr<double[]>& eta_H,cons
     this->v2u(v0, u0);
     this->v2u(v1, u1);
     this->v2u(v2, u2);
-
+    // std::cout<<"Q[1]="<<Q[1]<<std::endl;
     double energy_self = this->E_self(u0, u1, u2);
     std::cout << "energy_self=" << energy_self << std::endl;
 
     double energy_dipole = E_dpl();
     std::cout << "energy_dipole=" << energy_dipole << std::endl;
 
+    double energy_short = E_short();
+    // std::cout << "energy_short=" << energy_short << std::endl;
+
+
+
     return 0;
 }
-double V_BaTiO3_parallel::E_dpl()
-{
-
-    double total_val = 0;
-    clear_threads();  // Clear any previous threads
-
-    std::fill(results_pkl.begin(), results_pkl.end(), 0.0);
-
-    int Q_elem_ind_part7 ;
 
 
-    // Create and launch threads for each alpha and beta
-    for (int alpha = 0; alpha < 3; alpha++) {
-       u_left_ptr = ptr2_u0u1u2[alpha];  // Passing the shared pointer directly
-      Q_elem_ind_part7 = alpha * 3;  // Precompute Q_elem_ind_part7 for this alpha
-        for (int beta = 0; beta < 3; beta++) {
-           u_right_ptr = ptr2_u0u1u2[beta];  // Passing the shared pointer directly
-            for (int i = 0; i < num_threads_pkl; i++) {
-                int start = i * chunk_size_pkl;
-                int end = (i == num_threads_pkl - 1) ? num_combinations_pkl : (i + 1) * chunk_size_pkl;  // Ensure the last thread processes all remaining elements
-                threads.push_back(std::thread(&V_BaTiO3_parallel::compute_chunk_dpl, this, std::ref(combinations_dpl), std::ref(results_pkl[i]), start, end, u_left_ptr, u_right_ptr, Q_elem_ind_part7, beta));
-            }
-        }// end beta
-    }//end alpha
-
-    // Join all threads
-    clear_threads();
-    // Sum up the results from each thread
-
-    for (const auto& result : results_pkl) {
-        total_val += result;
-    }
-
-    return total_val;
-
-}
-
-void V_BaTiO3_parallel::compute_chunk_dpl(const std::vector<Combination>& combinations_dpl, double& result, int start, int end, const std::shared_ptr<double[]>& u_left_ptr, const std::shared_ptr<double[]>& u_right_ptr, int Q_elem_ind_part7, int beta)
-{
-    int Q_elem_ind_part1;
-    int Q_elem_ind_part2 ;
-    int Q_elem_ind_part3 ;
-    int Q_elem_ind_part4 ;
-    int Q_elem_ind_part5 ;
-    int Q_elem_ind_part6 ;
-    int u_left_ind_part1 ;
-    int u_left_ind_part2 ;
-    int u_right_ind_part1 ;
-    int u_right_ind_part2 ;
-    int Q_elem_ind;
-
-    int u_left_ind;
-    int u_right_ind;
-
-    double  u_left_elem_val;
-    double u_right_elem_val;
-
-    double val = 0;
-    double Q_elem_val;
-
-    // Loop over the assigned chunk of combinations_dpl
-    for (int idx = start; idx < end; ++idx)
-    {
-        auto [i1, j1, k1, i2, j2, k2] = combinations_dpl[idx];
-
-       Q_elem_ind_part1 = i1 * (N_power_5 * _3_power_2);
-         Q_elem_ind_part2 = j1 * (N_power_4 * _3_power_2);
-         Q_elem_ind_part3 = k1 * (N_power_3 * _3_power_2);
-         Q_elem_ind_part4 = i2 * (N_power_2 * _3_power_2);
-         Q_elem_ind_part5 = j2 * (N * _3_power_2);
-        Q_elem_ind_part6 = k2 * (_3_power_2);
-
-        // Final index computations including Q_elem_ind_part7
-         Q_elem_ind = Q_elem_ind_part1 + Q_elem_ind_part2 + Q_elem_ind_part3 +
-                         Q_elem_ind_part4 + Q_elem_ind_part5 + Q_elem_ind_part6 +
-                         Q_elem_ind_part7 + beta;  // Adjust this based on your requirement
 
 
-       u_left_ind_part1 = i1 * N_power_2;
-         u_left_ind_part2 = j1 * N;
-         u_right_ind_part1 = i2 * N_power_2;
-        u_right_ind_part2 = j2 * N;
-
-       u_left_ind = u_left_ind_part1 + u_left_ind_part2 + k1;
-        u_right_ind = u_right_ind_part1 + u_right_ind_part2 + k2;
-
-        u_left_elem_val = u_left_ptr[u_left_ind];
-        u_right_elem_val = u_right_ptr[u_right_ind];
-
-         Q_elem_val = Q[Q_elem_ind];
-
-        // Accumulate the result for the current chunk
-        val += Q_elem_val * u_left_elem_val * u_right_elem_val;
-        std::cout<<"val="<<val<<std::endl;
-    }//end for
-    result = val;
-
-}//end compute_chunk_dpl
-
-
-// Helper function to clear and reset threads
-void V_BaTiO3_parallel::clear_threads() {
-    // Join any existing threads and clear them
-    for (auto& th : threads) {
-        if (th.joinable()) {
-            th.join();
-        }
-    }
-    threads.clear();  // Clear the thread vector
-}
 
 
 double V_BaTiO3_parallel::E_self(const std::shared_ptr<double[]>& u0, const std::shared_ptr<double[]>& u1,
@@ -1963,3 +1847,570 @@ double V_BaTiO3_parallel::E_self(const std::shared_ptr<double[]>& u0, const std:
 
 
 }//end E_self
+
+
+// Function to compute indices from a flattened index
+void V_BaTiO3_parallel::compute_indices(uint64_t idx, int N, int& i1, int& j1, int& k1, int& i2, int& j2, int& k2) {
+    k2 = idx % N;
+    idx /= N;
+    j2 = idx % N;
+    idx /= N;
+    i2 = idx % N;
+    idx /= N;
+    k1 = idx % N;
+    idx /= N;
+    j1 = idx % N;
+    idx /= N;
+    i1 = idx % N;
+}
+
+
+
+// Dipole energy computation using smart pointers and C++11 threads
+/// Function to calculate a partial sum for a range of indices
+void V_BaTiO3_parallel::compute_partial_sum(uint64_t start_idx, uint64_t end_idx, int N, double& partial_val, int alpha, int beta) {
+    partial_val = 0.0;
+
+    int Q_elem_ind_part1, Q_elem_ind_part2, Q_elem_ind_part3, Q_elem_ind_part4;
+    int Q_elem_ind_part5, Q_elem_ind_part6, Q_elem_ind_part7, Q_elem_ind;
+    int u_left_ind_part1, u_left_ind_part2, u_right_ind_part1, u_right_ind_part2;
+    int u_left_ind, u_right_ind;
+
+    double Q_elem_val, u_left_elem_val, u_right_elem_val;
+
+    Q_elem_ind_part7 = alpha * 3;
+    u_left_ptr = ptr2_u0u1u2[alpha];
+    u_right_ptr = ptr2_u0u1u2[beta];
+
+    for (uint64_t idx = start_idx; idx < end_idx; ++idx)
+    {
+        int i1, j1, k1, i2, j2, k2;
+        compute_indices(idx, N, i1, j1, k1, i2, j2, k2);
+
+        // Compute parts of the index for Q and u_left, u_right
+        Q_elem_ind_part1 = i1 * (N_power_5 * _3_power_2);
+        Q_elem_ind_part2 = j1 * (N_power_4 * _3_power_2);
+        Q_elem_ind_part3 = k1 * (N_power_3 * _3_power_2);
+        Q_elem_ind_part4 = i2 * (N_power_2 * _3_power_2);
+        Q_elem_ind_part5 = j2 * (N * _3_power_2);
+        Q_elem_ind_part6 = k2 * (_3_power_2);
+        Q_elem_ind = Q_elem_ind_part1 + Q_elem_ind_part2 + Q_elem_ind_part3 +
+                     Q_elem_ind_part4 + Q_elem_ind_part5 + Q_elem_ind_part6 +
+                     Q_elem_ind_part7 + beta;
+
+        u_left_ind_part1 = i1 * N_power_2;
+        u_left_ind_part2 = j1 * N;
+        u_left_ind = u_left_ind_part1 + u_left_ind_part2 + k1;
+
+        u_right_ind_part1 = i2 * N_power_2;
+        u_right_ind_part2 = j2 * N;
+        u_right_ind = u_right_ind_part1 + u_right_ind_part2 + k2;
+
+        // Access values from Q and u_left, u_right
+        Q_elem_val = Q[Q_elem_ind];
+        u_left_elem_val = u_left_ptr[u_left_ind];
+        u_right_elem_val = u_right_ptr[u_right_ind];
+
+        // Accumulate the result
+        partial_val += Q_elem_val * u_left_elem_val * u_right_elem_val;
+    }
+}
+
+
+/// Main dipole energy function using std::thread
+double V_BaTiO3_parallel::E_dpl()
+{
+    double val = 0.0;
+    uint64_t N_power_6 = N * N * N * N * N * N;
+
+    // Number of threads to use
+    const unsigned num_threads = std::thread::hardware_concurrency();
+    std::vector<double> partial_vals(num_threads, 0.0);
+
+    // Outer loops over alpha and beta
+    for (int alpha = 0; alpha < 3; alpha++)
+    {
+        for (int beta = 0; beta < 3; beta++)
+        {
+            // Clear threads before usage
+            threads.clear();
+
+            // Divide the total range (0 to N^6) among threads
+            uint64_t chunk_size = N_power_6 / num_threads;
+
+            for (unsigned t = 0; t < num_threads; ++t)
+            {
+                uint64_t start_idx = t * chunk_size;
+                uint64_t end_idx = (t == num_threads - 1) ? N_power_6 : (t + 1) * chunk_size;
+
+                // Create threads and assign tasks
+                threads.push_back(std::thread(&V_BaTiO3_parallel::compute_partial_sum, this, start_idx, end_idx, N, std::ref(partial_vals[t]), alpha, beta));
+            }
+
+            // Join threads and collect results
+            for (auto& thread : threads)
+            {
+                thread.join();
+            }
+
+            // Accumulate the results from each thread
+            for (const auto& partial_val : partial_vals)
+            {
+                val += partial_val;
+            }
+
+            // Clear threads after usage
+            threads.clear();
+        }
+    }
+
+    return val;
+}
+
+// E_short
+double V_BaTiO3_parallel::E_short()
+{
+    double energy_short_1NN = E_short_1NN();
+    std::cout<<"energy_short_1NN="<<energy_short_1NN<<std::endl;
+
+    double energy_short_2NN = E_short_2NN();
+    std::cout<<"energy_short_2NN="<<energy_short_2NN<<std::endl;
+
+    // double energy_short_3NN = E_short_3NN();
+    // std::cout<<"energy_short_3NN="<<energy_short_3NN<<std::endl;
+
+    return 0;//energy_short_1NN + energy_short_2NN + energy_short_3NN;
+
+}
+
+/// Function to compute indices from a flattened index
+void V_BaTiO3_parallel::compute_indices_1NN(uint64_t idx, int& n0, int& n1, int& n2) {
+    n2 = idx % N;
+    idx /= N;
+    n1 = idx % N;
+    idx /= N;
+    n0 = idx % N;
+}
+
+/// Function to calculate a partial sum for the 1NN1 term (shift in n2)
+void V_BaTiO3_parallel::compute_partial_sum_1NN1(uint64_t start_idx, uint64_t end_idx, double& partial_val, int alpha) {
+    partial_val = 0.0;
+
+    int ind_u_left, ind_u_right;
+    int ind_u_left_part1, ind_u_left_part2;
+    double elem_left, elem_right;
+
+    u_left_ptr = ptr2_u0u1u2[alpha];
+    u_right_ptr = ptr2_u0u1u2[alpha];
+
+    for (uint64_t idx = start_idx; idx < end_idx; ++idx)
+    {
+        int n0, n1, n2;
+        compute_indices_1NN(idx, n0, n1, n2);
+
+        ind_u_left_part1 = n0 * N_power_2;
+        ind_u_left_part2 = n1 * N;
+
+        ind_u_left = ind_u_left_part1 + ind_u_left_part2 + n2;
+        ind_u_right = ind_u_left_part1 + ind_u_left_part2 + (n2 + 1) % N;
+
+        // Get the left and right elements
+        elem_left = u_left_ptr[ind_u_left];
+        elem_right = u_right_ptr[ind_u_right];
+
+        // Accumulate the value
+        partial_val += j2_val * elem_left * elem_right;
+    }
+}
+
+/// Function to calculate a partial sum for the 1NN2 term (shift in n1)
+void V_BaTiO3_parallel::compute_partial_sum_1NN2(uint64_t start_idx, uint64_t end_idx, double& partial_val, int alpha) {
+    partial_val = 0.0;
+
+    int ind_u_left, ind_u_right;
+    int ind_u_left_part1, ind_u_left_part2, ind_u_right_part2;
+    double elem_left, elem_right;
+
+    u_left_ptr = ptr2_u0u1u2[alpha];
+    u_right_ptr = ptr2_u0u1u2[alpha];
+
+    for (uint64_t idx = start_idx; idx < end_idx; ++idx)
+    {
+        int n0, n1, n2;
+        compute_indices_1NN(idx, n0, n1, n2);
+
+        ind_u_left_part1 = n0 * N_power_2;
+        ind_u_left_part2 = n1 * N;
+        ind_u_right_part2 = ((n1 + 1) % N) * N;
+
+        ind_u_left = ind_u_left_part1 + ind_u_left_part2 + n2;
+        ind_u_right = ind_u_left_part1 + ind_u_right_part2 + n2;
+
+        // Get the left and right elements
+        elem_left = u_left_ptr[ind_u_left];
+        elem_right = u_right_ptr[ind_u_right];
+
+        // Accumulate the value
+        partial_val += j2_val * elem_left * elem_right;
+    }
+}
+
+/// Function to calculate a partial sum for the 1NN3 term (shift in n0)
+void V_BaTiO3_parallel::compute_partial_sum_1NN3(uint64_t start_idx, uint64_t end_idx, double& partial_val, int alpha) {
+    partial_val = 0.0;
+
+    int ind_u_left, ind_u_right;
+    int ind_u_left_part1, ind_u_left_part2, ind_u_right_part1;
+    double elem_left, elem_right;
+
+    u_left_ptr = ptr2_u0u1u2[alpha];
+    u_right_ptr = ptr2_u0u1u2[alpha];
+
+    for (uint64_t idx = start_idx; idx < end_idx; ++idx)
+    {
+        int n0, n1, n2;
+        compute_indices_1NN(idx, n0, n1, n2);
+
+        ind_u_left_part1 = n0 * N_power_2;
+        ind_u_right_part1 = ((n0 + 1) % N) * N_power_2;
+        ind_u_left_part2 = n1 * N;
+
+        ind_u_left = ind_u_left_part1 + ind_u_left_part2 + n2;
+        ind_u_right = ind_u_right_part1 + ind_u_left_part2 + n2;
+
+        // Get the left and right elements
+        elem_left = u_left_ptr[ind_u_left];
+        elem_right = u_right_ptr[ind_u_right];
+
+        // Accumulate the value
+        partial_val += j2_val * elem_left * elem_right;
+    }
+}
+
+
+/// Main short-range energy 1NN function using std::thread
+double V_BaTiO3_parallel::E_short_1NN()
+{
+    double val1 = 0.0, val2 = 0.0, val3 = 0.0;
+
+    // Number of threads to use
+    const unsigned num_threads = std::thread::hardware_concurrency();
+    std::vector<double> partial_vals(num_threads, 0.0);
+
+    // Loop over alpha
+    for (int alpha = 0; alpha < 3; alpha++)
+    {
+        // Clear threads before usage
+        threads.clear();
+
+        // Divide the total range (0 to N^3) among threads
+        uint64_t chunk_size = N_power_3 / num_threads;
+
+        // First nearest neighbor term (1NN1)
+        for (unsigned t = 0; t < num_threads; ++t)
+        {
+            uint64_t start_idx = t * chunk_size;
+            uint64_t end_idx = (t == num_threads - 1) ? N_power_3 : (t + 1) * chunk_size;
+
+            threads.push_back(std::thread(&V_BaTiO3_parallel::compute_partial_sum_1NN1, this, start_idx, end_idx, std::ref(partial_vals[t]), alpha));
+        }
+        for (auto& thread : threads) thread.join();
+        for (const auto& partial_val : partial_vals) val1 += partial_val;
+
+        // Clear threads before next term
+        threads.clear();
+
+        // Second nearest neighbor term (1NN2)
+        for (unsigned t = 0; t < num_threads; ++t)
+        {
+            uint64_t start_idx = t * chunk_size;
+            uint64_t end_idx = (t == num_threads - 1) ? N_power_3 : (t + 1) * chunk_size;
+
+            threads.push_back(std::thread(&V_BaTiO3_parallel::compute_partial_sum_1NN2, this, start_idx, end_idx, std::ref(partial_vals[t]), alpha));
+        }
+        for (auto& thread : threads) thread.join();
+        for (const auto& partial_val : partial_vals) val2 += partial_val;
+
+        // Clear threads before next term
+        threads.clear();
+
+        // Third nearest neighbor term (1NN3)
+        for (unsigned t = 0; t < num_threads; ++t)
+        {
+            uint64_t start_idx = t * chunk_size;
+            uint64_t end_idx = (t == num_threads - 1) ? N_power_3 : (t + 1) * chunk_size;
+
+            threads.push_back(std::thread(&V_BaTiO3_parallel::compute_partial_sum_1NN3, this, start_idx, end_idx, std::ref(partial_vals[t]), alpha));
+        }
+        for (auto& thread : threads) thread.join();
+        for (const auto& partial_val : partial_vals) val3 += partial_val;
+
+        // Clear threads after usage
+        threads.clear();
+    }
+
+    return val1 + val2 + val3;
+}
+
+/// Function to compute indices from a flattened index for 2NN term
+void V_BaTiO3_parallel::compute_indices_2NN(uint64_t idx, int& n0, int& n1, int& n2) {
+    n2 = idx % N;
+    idx /= N;
+    n1 = idx % N;
+    idx /= N;
+    n0 = idx % N;
+}
+
+
+/// Function to calculate a partial sum for 2NN1 term
+void V_BaTiO3_parallel::compute_partial_sum_2NN1(uint64_t start_idx, uint64_t end_idx, double& partial_val, int alpha, int beta) {
+    partial_val = 0.0;
+
+    int m0, left_ind, right_ind;
+    int left_ind_part1, left_ind_part2, right_ind_part1, right_ind_part2;
+    double elem_left, elem_right;
+    double m1_double, n1_double, m2_double, n2_double, J;
+
+    u_left_ptr = ptr2_u0u1u2[alpha];
+    u_right_ptr = ptr2_u0u1u2[beta];
+
+    for (uint64_t idx = start_idx; idx < end_idx; ++idx) {
+        int n0, n1, n2;
+        compute_indices_2NN(idx, n0, n1, n2);
+
+        m0 = n0;
+        left_ind_part1 = n0 * N_power_2;
+        right_ind_part1 = m0 * N_power_2;
+        left_ind_part2 = n1 * N;
+
+        left_ind = left_ind_part1 + left_ind_part2 + n2;
+
+        for (int m1 : {python_mod(n1 - 1, N), python_mod(n1 + 1, N)}) {
+            right_ind_part2 = m1 * N;
+            for (int m2 : {python_mod(n2 - 1, N), python_mod(n2 + 1, N)}) {
+                right_ind = right_ind_part1 + right_ind_part2 + m2;
+
+                elem_left = u_left_ptr[left_ind];
+                elem_right = u_right_ptr[right_ind];
+
+                R_hat[0] = 0.0;
+                m1_double = static_cast<double>(m1);
+                n1_double = static_cast<double>(n1);
+                m2_double = static_cast<double>(m2);
+                n2_double = static_cast<double>(n2);
+
+                R_hat[1] = (m1_double - n1_double) / std::sqrt(2.0);
+                R_hat[2] = (m2_double - n2_double) / std::sqrt(2.0);
+
+                J = (j4_val + std::sqrt(2.0) * (j3_val - j4_val) * std::abs(R_hat[alpha])) *
+                    delta(alpha, beta) +
+                    2.0 * j5_val * R_hat[alpha] * R_hat[beta] * (1 - delta(alpha, beta));
+
+                partial_val += J * elem_left * elem_right;
+            }
+        }
+    }
+}
+
+
+void V_BaTiO3_parallel::compute_partial_sum_2NN2(uint64_t start_idx, uint64_t end_idx, double& partial_val, int alpha, int beta)
+{
+    partial_val = 0.0;
+
+    int  m1, left_ind, right_ind;
+    int left_ind_part1, left_ind_part2, right_ind_part1, right_ind_part2;
+    double elem_left, elem_right;
+    double m0_double, n0_double, m2_double, n2_double, J;
+
+    u_left_ptr = ptr2_u0u1u2[alpha];
+    u_right_ptr = ptr2_u0u1u2[beta];
+
+    for (uint64_t idx = start_idx; idx < end_idx; ++idx)
+    {
+        int n0, n1, n2;
+        compute_indices_2NN(idx, n0, n1, n2);
+        left_ind_part1=n0*N_power_2;
+        m1 = n1;
+        left_ind_part2=n1*N;
+        right_ind_part2=m1*N;
+        left_ind = left_ind_part1+ left_ind_part2 + n2;
+        for (int m0 : {python_mod(n0 - 1, N), python_mod(n0 + 1, N)})
+        {
+            right_ind_part1=m0*N_power_2;
+            for (int m2 : {python_mod(n2 - 1, N), python_mod(n2 + 1, N)})
+            {
+                // u_left_ptr = ptr2_u0u1u2[alpha];
+                // u_right_ptr = ptr2_u0u1u2[beta];
+
+                // m1 = n1;
+                // left_ind = n0 * N * N + n1 * N + n2;
+                // right_ind = m0 * N * N + m1 * N + m2;
+                right_ind = right_ind_part1 + right_ind_part2 + m2;
+
+                elem_left = u_left_ptr[left_ind];
+                elem_right = u_right_ptr[right_ind];
+
+                m0_double = static_cast<double>(m0);
+                n0_double = static_cast<double>(n0);
+                m2_double = static_cast<double>(m2);
+                n2_double = static_cast<double>(n2);
+
+                R_hat[0] = (m0_double - n0_double) / std::sqrt(2.0);
+                R_hat[1] = 0.0;
+                R_hat[2] = (m2_double - n2_double) / std::sqrt(2.0);
+
+                J = (j4_val + std::sqrt(2.0) * (j3_val - j4_val) * std::abs(R_hat[alpha])) *
+                   delta(alpha, beta)
+                   + 2.0 * j5_val * R_hat[alpha] * R_hat[beta] * (1 - delta(alpha, beta));
+
+                partial_val += J * elem_left * elem_right;
+            } //end m2
+        } //end m0
+
+    }//end idx
+
+}
+
+
+void V_BaTiO3_parallel::compute_partial_sum_2NN3(uint64_t start_idx, uint64_t end_idx, double& partial_val, int alpha, int beta)
+{
+
+    partial_val = 0.0;
+
+    int m2, left_ind, right_ind;
+    int left_ind_part1, left_ind_part2, right_ind_part1;
+    double elem_left, elem_right;
+    double m0_double, n0_double, m1_double, n1_double, J;
+
+    u_left_ptr = ptr2_u0u1u2[alpha];
+    u_right_ptr = ptr2_u0u1u2[beta];
+    for (uint64_t idx = start_idx; idx < end_idx; ++idx)
+    {
+        int n0, n1, n2;
+        compute_indices_2NN(idx, n0, n1, n2);
+        left_ind_part1=n0*N_power_2;
+        left_ind_part2=n1*N;
+        left_ind =left_ind_part1 + left_ind_part2 + n2;
+        for (int m0 : {python_mod(n0 - 1, N), python_mod(n0 + 1, N)})
+        {
+            right_ind_part1=m0*N_power_2;
+            for (int m1 : {python_mod(n1 - 1, N), python_mod(n1 + 1, N)})
+            {
+                // u_left_ptr = ptr2_u0u1u2[alpha];
+                // u_right_ptr = ptr2_u0u1u2[beta];
+
+                m2 = n2;
+                // left_ind = n0 * N * N + n1 * N + n2;
+                // right_ind = m0 * N * N + m1 * N + m2;
+                right_ind = right_ind_part1 + m1 * N + m2;
+
+                elem_left = u_left_ptr[left_ind];
+                elem_right = u_right_ptr[right_ind];
+
+                m0_double = static_cast<double>(m0);
+                n0_double = static_cast<double>(n0);
+                m1_double = static_cast<double>(m1);
+                n1_double = static_cast<double>(n1);
+
+                R_hat[0] = (m0_double - n0_double) / std::sqrt(2.0);
+                R_hat[1] = (m1_double - n1_double) / std::sqrt(2.0);
+                R_hat[2] = 0.0;
+
+                 J = (j4_val + std::sqrt(2.0) * (j3_val - j4_val) * std::abs(R_hat[alpha])) *
+                    delta(alpha, beta)
+                    + 2.0 * j5_val * R_hat[alpha] * R_hat[beta] * (1 - delta(alpha, beta));
+
+
+                partial_val += J * elem_left * elem_right;
+            } //end m1
+        } //end m0
+
+    }//end idx
+
+}
+
+
+/// Main short-range energy 2NN function using std::thread
+double V_BaTiO3_parallel::E_short_2NN() {
+    double val1 = 0.0, val2 = 0.0, val3 = 0.0;
+
+    // Number of threads to use
+    const unsigned num_threads = std::thread::hardware_concurrency();
+    std::vector<double> partial_vals(num_threads, 0.0);
+
+    // Loop over alpha and beta
+    for (int alpha = 0; alpha < 3; alpha++) {
+        for (int beta = 0; beta < 3; beta++) {
+
+            // Clear threads before usage
+            threads.clear();
+
+            // Divide the total range (0 to N^3) among threads
+            uint64_t chunk_size = N_power_3 / num_threads;
+
+            // First nearest neighbor term (2NN1)
+            for (unsigned t = 0; t < num_threads; ++t) {
+                uint64_t start_idx = t * chunk_size;
+                uint64_t end_idx = (t == num_threads - 1) ? N_power_3 : (t + 1) * chunk_size;
+
+                threads.push_back(std::thread(&V_BaTiO3_parallel::compute_partial_sum_2NN1, this, start_idx, end_idx, std::ref(partial_vals[t]), alpha, beta));
+            }
+            for (auto& thread : threads) thread.join();
+            for (const auto& partial_val : partial_vals) val1 += partial_val;
+
+            // Clear threads before next term
+            threads.clear();
+
+            // Second nearest neighbor term (2NN2)
+            for (unsigned t = 0; t < num_threads; ++t) {
+                uint64_t start_idx = t * chunk_size;
+                uint64_t end_idx = (t == num_threads - 1) ? N_power_3 : (t + 1) * chunk_size;
+
+                threads.push_back(std::thread(&V_BaTiO3_parallel::compute_partial_sum_2NN2, this, start_idx, end_idx, std::ref(partial_vals[t]), alpha, beta));
+            }
+            for (auto& thread : threads) thread.join();
+            for (const auto& partial_val : partial_vals) val2 += partial_val;
+
+            // Clear threads before next term
+            threads.clear();
+
+            // Third nearest neighbor term (2NN3)
+            for (unsigned t = 0; t < num_threads; ++t) {
+                uint64_t start_idx = t * chunk_size;
+                uint64_t end_idx = (t == num_threads - 1) ? N_power_3 : (t + 1) * chunk_size;
+
+                threads.push_back(std::thread(&V_BaTiO3_parallel::compute_partial_sum_2NN3, this, start_idx, end_idx, std::ref(partial_vals[t]), alpha, beta));
+            }
+            for (auto& thread : threads) thread.join();
+            for (const auto& partial_val : partial_vals) val3 += partial_val;
+
+            // Clear threads after usage
+            threads.clear();
+        }
+    }
+
+    // Combine values
+    val1 *= 0.5;
+    val2 *= 0.5;
+    val3 *= 0.5;
+
+    return val1 + val2 + val3;
+}
+
+int V_BaTiO3_parallel::python_mod(int a, int M)
+{
+    return (a % M + M) % M;
+}
+
+///delta function
+double V_BaTiO3_parallel::delta(const int& i, const int& j)
+{
+    if (i == j)
+    {
+        return 1.0;
+    }
+    else
+    {
+        return 0.0;
+    }
+}

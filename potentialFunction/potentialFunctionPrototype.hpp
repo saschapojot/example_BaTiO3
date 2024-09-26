@@ -4,6 +4,8 @@
 
 #ifndef POTENTIALFUNCTIONPROTOTYPE_HPP
 #define POTENTIALFUNCTIONPROTOTYPE_HPP
+#include <atomic>
+#include <condition_variable>
 #include <cstring> // For memcpy
 #include <functional> // for std::ref
 #include <fstream>
@@ -11,6 +13,8 @@
 #include <iostream>
 #include <math.h>
 #include <memory>
+#include <mutex>
+#include <queue>
 #include <regex>
 #include <stdexcept>
 #include <string>
@@ -33,19 +37,16 @@ public:
 
 std::shared_ptr<potentialFunction>  createPotentialFunction(const std::string& funcName, const std::string &row) ;
 
-using Combination = std::tuple<int, int, int, int, int, int>;
+
 class V_BaTiO3_parallel: public potentialFunction
 {
 public:
     V_BaTiO3_parallel(const std::string& coefsStr): potentialFunction()
     {
         this->coefsInStr = coefsStr;
-        num_threads_pkl = std::thread::hardware_concurrency();
-        // std::cout<<"num_threads_pkl="<<num_threads_pkl<<std::endl;
-        results_pkl.resize(num_threads_pkl, 0.0);  // Allocate space for results_pkl
-        initialize_combinations_dpl();  // Initialize the combinations_dpl
-        num_combinations_pkl = combinations_dpl.size();  // Initialize num_combinations_pkl
-        chunk_size_pkl = num_combinations_pkl / num_threads_pkl;  // Initialize chunk_size_pkl once
+        // num_threads_total=std::thread::hardware_concurrency();
+
+
     }//end constructor
 
 public:
@@ -61,16 +62,26 @@ public:
                   const std::shared_ptr<double[]>& u2);
 
     // dipole energy
-    void initialize_combinations_dpl();
     double E_dpl();
-    void compute_chunk_dpl(const std::vector<Combination>& combinations_dpl, double& result, int start, int end, const std::shared_ptr<double[]>& u_left_ptr, const std::shared_ptr<double[]>& u_right_ptr, int Q_elem_ind_part7, int beta);
+    void compute_partial_sum(uint64_t start_idx, uint64_t end_idx, int N, double& partial_val, int alpha, int beta) ;
+
+    void compute_indices(uint64_t idx, int N, int& i1, int& j1, int& k1, int& i2, int& j2, int& k2);
 
     //short-range energy
     double E_short();
     //short-range energy, 1NN term
     double E_short_1NN();
+    void compute_indices_1NN(uint64_t idx, int& n0, int& n1, int& n2);
+    void compute_partial_sum_1NN1(uint64_t start_idx, uint64_t end_idx, double& partial_val, int alpha) ;
+    void compute_partial_sum_1NN2(uint64_t start_idx, uint64_t end_idx, double& partial_val, int alpha) ;
+    void compute_partial_sum_1NN3(uint64_t start_idx, uint64_t end_idx, double& partial_val, int alpha) ;
     //short-range energy, 2NN term
     double E_short_2NN();
+    void compute_indices_2NN(uint64_t idx, int& n0, int& n1, int& n2) ;
+    void compute_partial_sum_2NN1(uint64_t start_idx, uint64_t end_idx, double& partial_val, int alpha, int beta) ;
+    void compute_partial_sum_2NN2(uint64_t start_idx, uint64_t end_idx, double& partial_val, int alpha, int beta) ;
+    void compute_partial_sum_2NN3(uint64_t start_idx, uint64_t end_idx, double& partial_val, int alpha, int beta) ;
+
     //short-range energy, 3NN term
     double E_short_3NN();
 
@@ -93,8 +104,7 @@ public:
                           const std::shared_ptr<double[]>& v1, const std::shared_ptr<double[]>& v2);
 
     int flattened_ind_for_E_elas_mode_int(const int& i, const int& j, const int& k, const int& q);
-    // Helper function to clear threads
-    void clear_threads();
+
 public:
     std::string coefsInStr;
     double kappa2_val;
@@ -114,11 +124,13 @@ public:
     double gamma12_val;
     double gamma44_val;
 
-    int N_power_5;
-    int N_power_4;
-    int N_power_3;
-    int N_power_2;
-    int _3_power_2;
+    uint64_t N_power_6;
+    uint64_t N_power_5;
+    uint64_t N_power_4;
+    uint64_t N_power_3;
+    uint64_t N_power_2;
+
+    uint64_t _3_power_2;
 
 
     double B100_val, B111_val, B122_val;
@@ -152,17 +164,10 @@ public:
     std::shared_ptr<double[]> R_hat;
     std::shared_ptr<double[]> u_left_ptr;
     std::shared_ptr<double[]> u_right_ptr;
-    std::vector<Combination> combinations_dpl;
-    // Threads for parallelization
+
+
+    // size_t num_threads_total;
     std::vector<std::thread> threads;
-
-    // Results for each thread
-    std::vector<double> results_pkl;
-
-
-    int num_threads_pkl;
-    int num_combinations_pkl;
-    int chunk_size_pkl;
 
 
 };
