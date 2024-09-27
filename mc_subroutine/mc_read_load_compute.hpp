@@ -250,17 +250,17 @@ public:
 
 
         //check potential value
-        std::shared_ptr<potentialFunction> potFunc_serial_ptr=createPotentialFunction("V_BaTiO3",coefsToPotFunc);
-        std::shared_ptr<potentialFunction> potFunc_parallel_ptr=createPotentialFunction("V_BaTiO3_parallel",coefsToPotFunc);
-        potFunc_serial_ptr->init();
-        potFunc_parallel_ptr->init();
-        this->initialize_v0_v1_v2_eta_H();
-        std::cout<<"eta_H_init[3]="<<eta_H_init[3]<<std::endl;
-        std::cout<<"v0_init[4]="<<v0_init[4]<<std::endl;
-        std::cout<<"serial:"<<std::endl;
-        (*potFunc_serial_ptr)(eta_H_init,v0_init,v1_init,v2_init);
-        std::cout<<"parallel:"<<std::endl;
-        (*potFunc_parallel_ptr)(eta_H_init,v0_init,v1_init,v2_init);
+        // std::shared_ptr<potentialFunction> potFunc_serial_ptr=createPotentialFunction("V_BaTiO3",coefsToPotFunc);
+        // std::shared_ptr<potentialFunction> potFunc_parallel_ptr=createPotentialFunction("V_BaTiO3_parallel",coefsToPotFunc);
+        // potFunc_serial_ptr->init();
+        // potFunc_parallel_ptr->init();
+        // this->initialize_v0_v1_v2_eta_H();
+        // std::cout<<"eta_H_init[3]="<<eta_H_init[3]<<std::endl;
+        // std::cout<<"v0_init[4]="<<v0_init[4]<<std::endl;
+        // std::cout<<"serial:"<<std::endl;
+        // (*potFunc_serial_ptr)(eta_H_init,v0_init,v1_init,v2_init);
+        // std::cout<<"parallel:"<<std::endl;
+        // (*potFunc_parallel_ptr)(eta_H_init,v0_init,v1_init,v2_init);
 
     }
 public:

@@ -279,19 +279,19 @@ public:
         this->v2u(v2, u2);
         // std::cout<<"Q[1]="<<Q[1]<<std::endl;
         double energy_self = this->E_self(u0, u1, u2);
-        std::cout << "energy_self=" << energy_self << std::endl;
+        // std::cout << "energy_self=" << energy_self << std::endl;
 
         double energy_dipole = E_dpl();
-        std::cout << "energy_dipole=" << energy_dipole << std::endl;
+        // std::cout << "energy_dipole=" << energy_dipole << std::endl;
 
         double energy_short = E_short();
-        std::cout << "energy_short=" << energy_short << std::endl;
+        // std::cout << "energy_short=" << energy_short << std::endl;
 
         double energy_elas = E_elas(eta_H, v0, v1, v2);
-        std::cout << "energy_elas=" << energy_elas << std::endl;
+        // std::cout << "energy_elas=" << energy_elas << std::endl;
 
         double energy_elas_mode_int=E_elas_mode_int(eta_H,v0,v1,v2);
-        std::cout<<"energy_elas_mode_int="<<energy_elas_mode_int<<std::endl;
+        // std::cout<<"energy_elas_mode_int="<<energy_elas_mode_int<<std::endl;
 
         double pot_energy=energy_self+energy_dipole+energy_short+energy_elas+energy_elas_mode_int;
         return pot_energy;
@@ -541,13 +541,13 @@ public:
     double E_short()
     {
         double energy_short_1NN = E_short_1NN();
-        std::cout<<"energy_short_1NN="<<energy_short_1NN<<std::endl;
+        // std::cout<<"energy_short_1NN="<<energy_short_1NN<<std::endl;
 
         double energy_short_2NN = E_short_2NN();
-        std::cout<<"energy_short_2NN="<<energy_short_2NN<<std::endl;
+        // std::cout<<"energy_short_2NN="<<energy_short_2NN<<std::endl;
 
         double energy_short_3NN = E_short_3NN();
-        std::cout<<"energy_short_3NN="<<energy_short_3NN<<std::endl;
+        // std::cout<<"energy_short_3NN="<<energy_short_3NN<<std::endl;
 
         return energy_short_1NN + energy_short_2NN + energy_short_3NN;
     }
@@ -1273,32 +1273,38 @@ public:
                     int u_ind_ijk = i * N * N + j * N + k;
 
                     double E_int_ijk = 0;
+                    double eta1ijk=eta_H1+etaI1ijk;
+                    double eta2ijk=eta_H2+etaI2ijk;
+                    double eta3ijk=eta_H3+etaI3ijk;
+                    double eta4ijk=eta_H4+etaI4ijk;
+                    double eta5ijk=eta_H5+etaI5ijk;
+                    double eta6ijk=eta_H6+etaI6ijk;
 
-                    E_int_ijk += B100_val * etaI1ijk * u0[u_ind_ijk] * u0[u_ind_ijk];
+                    E_int_ijk += B100_val * eta1ijk * u0[u_ind_ijk] * u0[u_ind_ijk];
 
-                    E_int_ijk += B111_val * etaI1ijk * u1[u_ind_ijk] * u1[u_ind_ijk];
+                    E_int_ijk += B111_val * eta1ijk * u1[u_ind_ijk] * u1[u_ind_ijk];
 
-                    E_int_ijk += B122_val * etaI1ijk * u2[u_ind_ijk] * u2[u_ind_ijk];
+                    E_int_ijk += B122_val * eta1ijk * u2[u_ind_ijk] * u2[u_ind_ijk];
 
-                    E_int_ijk += B200_val * etaI2ijk * u0[u_ind_ijk] * u0[u_ind_ijk];
+                    E_int_ijk += B200_val * eta2ijk * u0[u_ind_ijk] * u0[u_ind_ijk];
 
-                    E_int_ijk += B211_val * etaI2ijk * u1[u_ind_ijk] * u1[u_ind_ijk];
+                    E_int_ijk += B211_val * eta2ijk * u1[u_ind_ijk] * u1[u_ind_ijk];
 
-                    E_int_ijk += B222_val * etaI2ijk * u2[u_ind_ijk] * u2[u_ind_ijk];
+                    E_int_ijk += B222_val * eta2ijk * u2[u_ind_ijk] * u2[u_ind_ijk];
 
-                    E_int_ijk += B300_val * etaI3ijk * u0[u_ind_ijk] * u0[u_ind_ijk];
+                    E_int_ijk += B300_val * eta3ijk * u0[u_ind_ijk] * u0[u_ind_ijk];
 
-                    E_int_ijk += B311_val * etaI3ijk * u1[u_ind_ijk] * u1[u_ind_ijk];
+                    E_int_ijk += B311_val * eta3ijk * u1[u_ind_ijk] * u1[u_ind_ijk];
 
-                    E_int_ijk += B322_val * etaI3ijk * u2[u_ind_ijk] * u2[u_ind_ijk];
+                    E_int_ijk += B322_val * eta3ijk * u2[u_ind_ijk] * u2[u_ind_ijk];
 
-                    E_int_ijk += B412_val * etaI4ijk * u1[u_ind_ijk] * u2[u_ind_ijk];
+                    E_int_ijk += B412_val * eta4ijk * u1[u_ind_ijk] * u2[u_ind_ijk];
 
-                    E_int_ijk += B421_val * etaI4ijk * u2[u_ind_ijk] * u1[u_ind_ijk];
+                    E_int_ijk += B421_val * eta4ijk * u2[u_ind_ijk] * u1[u_ind_ijk];
 
-                    E_int_ijk += B502_val * etaI5ijk * u0[u_ind_ijk] * u2[u_ind_ijk];
+                    E_int_ijk += B502_val * eta5ijk * u0[u_ind_ijk] * u2[u_ind_ijk];
 
-                    E_int_ijk += B520_val * etaI5ijk * u2[u_ind_ijk] * u0[u_ind_ijk];
+                    E_int_ijk += B520_val * eta5ijk * u2[u_ind_ijk] * u0[u_ind_ijk];
 
                     E_int_ijk += B601_val * etaI6ijk * u0[u_ind_ijk] * u1[u_ind_ijk];
 
@@ -1791,17 +1797,25 @@ double V_BaTiO3_parallel::operator()(const std::shared_ptr<double[]>& eta_H,cons
     this->v2u(v2, u2);
     // std::cout<<"Q[1]="<<Q[1]<<std::endl;
     double energy_self = this->E_self(u0, u1, u2);
-    std::cout << "energy_self=" << energy_self << std::endl;
+    // std::cout << "energy_self=" << energy_self << std::endl;
 
     double energy_dipole = E_dpl();
-    std::cout << "energy_dipole=" << energy_dipole << std::endl;
+    // std::cout << "energy_dipole=" << energy_dipole << std::endl;
 
     double energy_short = E_short();
     // std::cout << "energy_short=" << energy_short << std::endl;
 
+    double energy_elas = E_elas(eta_H, v0, v1, v2);
+    // std::cout << "energy_elas=" << energy_elas << std::endl;
+
+    double energy_elas_mode_int=E_elas_mode_int(eta_H,v0,v1,v2);
+    // std::cout<<"energy_elas_mode_int="<<energy_elas_mode_int<<std::endl;
+
+    double pot_energy=energy_self+energy_dipole+energy_short+energy_elas+energy_elas_mode_int;
+    return pot_energy;
 
 
-    return 0;
+
 }
 
 
@@ -1971,15 +1985,15 @@ double V_BaTiO3_parallel::E_dpl()
 double V_BaTiO3_parallel::E_short()
 {
     double energy_short_1NN = E_short_1NN();
-    std::cout<<"energy_short_1NN="<<energy_short_1NN<<std::endl;
+    // std::cout<<"energy_short_1NN="<<energy_short_1NN<<std::endl;
 
     double energy_short_2NN = E_short_2NN();
-    std::cout<<"energy_short_2NN="<<energy_short_2NN<<std::endl;
+    // std::cout<<"energy_short_2NN="<<energy_short_2NN<<std::endl;
 
-    // double energy_short_3NN = E_short_3NN();
+    double energy_short_3NN = E_short_3NN();
     // std::cout<<"energy_short_3NN="<<energy_short_3NN<<std::endl;
 
-    return 0;//energy_short_1NN + energy_short_2NN + energy_short_3NN;
+    return energy_short_1NN + energy_short_2NN + energy_short_3NN;
 
 }
 
@@ -2413,4 +2427,516 @@ double V_BaTiO3_parallel::delta(const int& i, const int& j)
     {
         return 0.0;
     }
+}
+
+
+
+void V_BaTiO3_parallel::compute_indices_3NN(uint64_t idx, int& n0, int& n1, int& n2) {
+    n2 = idx % N;
+    idx /= N;
+    n1 = idx % N;
+    idx /= N;
+    n0 = idx % N;
+}
+
+void V_BaTiO3_parallel::compute_partial_sum_3NN(uint64_t start_idx, uint64_t end_idx, double& partial_val, int alpha, int beta)
+{
+    partial_val = 0.0;
+
+    int left_ind, right_ind;
+    int left_ind_part1, left_ind_part2, right_ind_part1, right_ind_part2;
+    double elem_left, elem_right;
+    double m0_double, n0_double, m1_double, n1_double, m2_double, n2_double, J;
+
+    u_left_ptr = ptr2_u0u1u2[alpha];
+    u_right_ptr = ptr2_u0u1u2[beta];
+    for (uint64_t idx = start_idx; idx < end_idx; ++idx)
+    {
+        int n0, n1, n2;
+        compute_indices_3NN(idx, n0, n1, n2);
+        left_ind_part1=n0*N_power_2;
+        left_ind_part2=n1*N;
+        left_ind = left_ind_part1 + left_ind_part2+ n2;
+        for (int m0 : {python_mod(n0 - 1, N), python_mod(n0 + 1, N)})
+        {
+            right_ind_part1=m0*N_power_2;
+            for (int m1 : {python_mod(n1 - 1, N), python_mod(n1 + 1, N)})
+            {
+                right_ind_part2=m1*N;
+                for (int m2 : {python_mod(n2 - 1, N), python_mod(n2 + 1, N)})
+                {
+                    // u_left_ptr = ptr2_u0u1u2[alpha];
+                    // u_right_ptr = ptr2_u0u1u2[beta];
+                    // left_ind = n0 * N * N + n1 * N + n2;
+                    // right_ind = m0 * N * N + m1 * N + m2;
+                    right_ind = right_ind_part1 + right_ind_part2 + m2;
+
+                    elem_left = u_left_ptr[left_ind];
+                    elem_right = u_right_ptr[right_ind];
+
+                    m0_double = static_cast<double>(m0);
+                    n0_double = static_cast<double>(n0);
+                    m1_double = static_cast<double>(m1);
+                    n1_double = static_cast<double>(n1);
+                    m2_double = static_cast<double>(m2);
+                    n2_double = static_cast<double>(n2);
+
+                    R_hat[0] = (m0_double - n0_double) / std::sqrt(3.0);
+                    R_hat[1] = (m1_double - n1_double) / std::sqrt(3.0);
+                    R_hat[2] = (m2_double - n2_double) / std::sqrt(3.0);
+
+                    J = j6_val * delta(alpha, beta) + 3.0 * j7_val * R_hat[alpha] * R_hat[
+                       beta] * (1 - delta(alpha, beta));
+                    partial_val += J * elem_left * elem_right;
+                } //end m2
+            } //end m1
+        } //end m0
+    }//end idx
+}
+
+
+/// Main short-range energy 3NN function using std::thread
+double V_BaTiO3_parallel::E_short_3NN() {
+    double val = 0.0;
+
+    // Number of threads to use
+    const unsigned num_threads = std::thread::hardware_concurrency();
+    std::vector<double> partial_vals(num_threads, 0.0);
+
+    // Loop over alpha and beta
+    for (int alpha = 0; alpha < 3; alpha++) {
+        for (int beta = 0; beta < 3; beta++) {
+
+            // Clear threads before usage
+            threads.clear();
+
+            // Divide the total range (0 to N^3) among threads
+            uint64_t chunk_size = N_power_3 / num_threads;
+
+            // Third nearest neighbor term (3NN)
+            for (unsigned t = 0; t < num_threads; ++t) {
+                uint64_t start_idx = t * chunk_size;
+                uint64_t end_idx = (t == num_threads - 1) ? N_power_3 : (t + 1) * chunk_size;
+
+                threads.push_back(std::thread(&V_BaTiO3_parallel::compute_partial_sum_3NN, this, start_idx, end_idx, std::ref(partial_vals[t]), alpha, beta));
+            }
+            for (auto& thread : threads) thread.join();
+            for (const auto& partial_val : partial_vals) val += partial_val;
+
+            // Clear threads after usage
+            threads.clear();
+        }
+    }
+
+    val *= 0.5;
+    return val;
+}
+
+
+/// Function to compute indices from a flattened index for E_elas
+void V_BaTiO3_parallel::compute_indices_elas(uint64_t idx, int& i, int& j, int& k) {
+    k = idx % N;
+    idx /= N;
+    j = idx % N;
+    idx /= N;
+    i = idx % N;
+}
+
+
+
+void V_BaTiO3_parallel::compute_partial_sum_elas_I1(uint64_t start_idx, uint64_t end_idx, double& partial_val,
+                                                    const std::shared_ptr<double[]>& v0,
+                                                    const std::shared_ptr<double[]>& v1)
+{
+    partial_val = 0.0;
+    int i_plus_1, i_minus_1, j_plus_1, j_minus_1;
+    int ind_Ba;
+    int ijk_Ba;
+    int iPlus1jk_Ba;
+    int iMinus1jk_Ba;
+    int ijPlus1k_Ba;
+    int ijMinus1k_Ba;
+    for (uint64_t idx = start_idx; idx < end_idx; ++idx)
+    {
+        int i, j, k;
+        compute_indices_elas(idx, i, j, k);
+        i_plus_1 = python_mod(i + 1, N);
+        i_minus_1 = python_mod(i - 1, N);
+        j_plus_1 = python_mod(j + 1, N);
+        j_minus_1 = python_mod(j - 1, N);
+         ind_Ba = 0;
+
+         ijk_Ba = flattened_ind_for_E_elas(i, j, k, ind_Ba);
+
+         iPlus1jk_Ba = flattened_ind_for_E_elas(i_plus_1, j, k, ind_Ba);
+        iMinus1jk_Ba = flattened_ind_for_E_elas(i_minus_1, j, k, ind_Ba);
+
+         ijPlus1k_Ba = flattened_ind_for_E_elas(i, j_plus_1, k, ind_Ba);
+         ijMinus1k_Ba = flattened_ind_for_E_elas(i, j_minus_1, k, ind_Ba);
+        // row 1 and row 2
+        partial_val += gamma11_val * (std::pow(v0[ijk_Ba] - v0[iPlus1jk_Ba], 2) +
+                                      std::pow(v0[ijk_Ba] - v0[iMinus1jk_Ba], 2));
+
+        // row 3 and row 4
+        partial_val += gamma12_val * ((v0[ijk_Ba] - v0[iPlus1jk_Ba]) * (v1[ijk_Ba] - v1[ijPlus1k_Ba]) +
+                                      (v0[ijk_Ba] - v0[iMinus1jk_Ba]) * (v1[ijk_Ba] - v1[ijMinus1k_Ba]));
+
+        // row 5 and row 6
+        partial_val += gamma44_val * (std::pow(v0[ijk_Ba] - v0[ijPlus1k_Ba] + v1[ijk_Ba] - v1[iPlus1jk_Ba], 2) +
+                                      std::pow(v0[ijk_Ba] - v0[ijMinus1k_Ba] + v1[ijk_Ba] - v1[iMinus1jk_Ba], 2));
+    }//end idx
+
+}
+
+
+
+void V_BaTiO3_parallel::compute_partial_sum_elas_I2(uint64_t start_idx, uint64_t end_idx, double& partial_val,
+                                                    const std::shared_ptr<double[]>& v0,
+                                                    const std::shared_ptr<double[]>& v2)
+{
+    partial_val = 0.0;
+    int i, j, k;
+    int i_plus_1;
+    int i_minus_1 ;
+    int k_plus_1;
+    int k_minus_1;
+    int ind_Ba;
+    int ijk_Ba;
+    int ij_kPlus1;
+    int ij_kMinus1;
+    int iPlus1_jk ;
+    int iMinus1_jk;
+    for (uint64_t idx = start_idx; idx < end_idx; ++idx)
+    {
+
+        compute_indices_elas(idx, i, j, k);
+        i_plus_1 = python_mod(i + 1, N);
+        i_minus_1 = python_mod(i - 1, N);
+
+       k_plus_1 = python_mod(k + 1, N);
+        k_minus_1 = python_mod(k - 1, N);
+         ind_Ba = 0;
+
+        ijk_Ba = flattened_ind_for_E_elas(i, j, k, ind_Ba);
+
+         ij_kPlus1 = flattened_ind_for_E_elas(i, j, k_plus_1, ind_Ba);
+         ij_kMinus1 = flattened_ind_for_E_elas(i, j, k_minus_1, ind_Ba);
+
+        iPlus1_jk = flattened_ind_for_E_elas(i_plus_1, j, k, ind_Ba);
+         iMinus1_jk = flattened_ind_for_E_elas(i_minus_1, j, k, ind_Ba);
+        // row 1 and row 2
+        partial_val += gamma11_val * (std::pow(v2[ijk_Ba] - v2[ij_kPlus1], 2) +
+                                      std::pow(v2[ijk_Ba] - v2[ij_kMinus1], 2));
+
+        // row 3 and row 4
+        partial_val += gamma12_val * ((v2[ijk_Ba] - v2[ij_kPlus1]) * (v0[ijk_Ba] - v0[iPlus1_jk]) +
+                                      (v2[ijk_Ba] - v2[ij_kMinus1]) * (v0[ijk_Ba] - v0[iMinus1_jk]));
+
+        // row 5 and row 6
+        partial_val += gamma44_val * (std::pow(v2[ijk_Ba] - v2[iPlus1_jk] + v0[ijk_Ba] - v0[ij_kPlus1], 2) +
+                                      std::pow(v2[ijk_Ba] - v2[iMinus1_jk] + v0[ijk_Ba] - v0[ij_kMinus1], 2));
+    }//end idx
+
+}
+
+
+
+/// Function to calculate the inhomogeneous part E_elas_I3
+void V_BaTiO3_parallel::compute_partial_sum_elas_I3(uint64_t start_idx, uint64_t end_idx, double& partial_val,
+                                                    const std::shared_ptr<double[]>& v1,
+                                                    const std::shared_ptr<double[]>& v2)
+{
+    partial_val = 0.0;
+    int j_plus_1, j_minus_1, k_plus_1, k_minus_1;
+    int ind_Ba ;
+    int ijk_Ba;
+    int i_jPlus1_k ;
+    int i_jMinus1_k;
+    int ij_kPlus1;
+    int ij_kMinus1;
+    for (uint64_t idx = start_idx; idx < end_idx; ++idx)
+    {
+        int i, j, k;
+        compute_indices_elas(idx, i, j, k);
+        j_plus_1 = python_mod(j + 1, N);
+        j_minus_1 = python_mod(j - 1, N);
+
+        k_plus_1 = python_mod(k + 1, N);
+        k_minus_1 = python_mod(k - 1, N);
+        ind_Ba = 0;
+
+        ijk_Ba = flattened_ind_for_E_elas(i, j, k, ind_Ba);
+
+        i_jPlus1_k = flattened_ind_for_E_elas(i, j_plus_1, k, ind_Ba);
+        i_jMinus1_k = flattened_ind_for_E_elas(i, j_minus_1, k, ind_Ba);
+
+        ij_kPlus1 = flattened_ind_for_E_elas(i, j, k_plus_1, ind_Ba);
+        ij_kMinus1 = flattened_ind_for_E_elas(i, j, k_minus_1, ind_Ba);
+        // row 1 and row 2
+        partial_val += gamma11_val * (std::pow(v1[ijk_Ba] - v1[i_jPlus1_k], 2) +
+                                      std::pow(v1[ijk_Ba] - v1[i_jMinus1_k], 2));
+
+        // row 3 and row 4
+        partial_val += gamma12_val * ((v1[ijk_Ba] - v1[i_jPlus1_k]) * (v2[ijk_Ba] - v2[ij_kPlus1]) +
+                                      (v1[ijk_Ba] - v1[i_jMinus1_k]) * (v2[ijk_Ba] - v2[ij_kMinus1]));
+
+        // row 5 and row 6
+        partial_val += gamma44_val * (std::pow(v1[ijk_Ba] - v1[ij_kPlus1] + v2[ijk_Ba] - v2[i_jPlus1_k], 2) +
+                                      std::pow(v1[ijk_Ba] - v1[ij_kMinus1] + v2[ijk_Ba] - v2[i_jMinus1_k], 2));
+    }//end idx
+}
+
+
+
+
+int V_BaTiO3_parallel::flattened_ind_for_E_elas(const int& i, const int& j, const int& k, const int& q)
+{
+    //i,j,k take values from 0 to N-1, q takes values from 0 to 4
+    int ind = q + 5 * k + 5 * j * N + 5 * i * N * N;
+
+    return ind;
+}
+
+/// Main elastic energy function using std::thread
+double V_BaTiO3_parallel::E_elas(const std::shared_ptr<double[]>& eta_H, const std::shared_ptr<double[]>& v0,
+                                 const std::shared_ptr<double[]>& v1, const std::shared_ptr<double[]>& v2) {
+    // Homogeneous part
+    double eta_H1 = eta_H[0], eta_H2 = eta_H[1], eta_H3 = eta_H[2];
+    double eta_H4 = eta_H[3], eta_H5 = eta_H[4], eta_H6 = eta_H[5];
+    double N_double = static_cast<double>(N);
+
+    double homogeneous_part = 0.5 * std::pow(N_double, 3) * B11_val * (std::pow(eta_H1, 2) + std::pow(eta_H2, 2) + std::pow(eta_H3, 2)) +
+                              std::pow(N_double, 3) * B12_val * (eta_H1 * eta_H2 + eta_H2 * eta_H3 + eta_H3 * eta_H1) +
+                              0.5 * std::pow(N_double, 3) * B44_val * (std::pow(eta_H4, 2) + std::pow(eta_H5, 2) + std::pow(eta_H6, 2));
+
+    // Inhomogeneous parts
+    double E_elas_I1 = 0.0, E_elas_I2 = 0.0, E_elas_I3 = 0.0;
+    uint64_t N_power_3 = N * N * N;
+
+    // Number of threads to use
+    const unsigned num_threads = std::thread::hardware_concurrency();
+    std::vector<double> partial_vals(num_threads, 0.0);
+
+    // Parallelize for E_elas_I1
+    threads.clear();
+    uint64_t chunk_size = N_power_3 / num_threads;
+
+    for (unsigned t = 0; t < num_threads; ++t) {
+        uint64_t start_idx = t * chunk_size;
+        uint64_t end_idx = (t == num_threads - 1) ? N_power_3 : (t + 1) * chunk_size;
+
+        threads.push_back(std::thread(&V_BaTiO3_parallel::compute_partial_sum_elas_I1, this, start_idx, end_idx,
+                                      std::ref(partial_vals[t]), v0, v1));
+    }
+    for (auto& thread : threads) thread.join();
+    for (const auto& partial_val : partial_vals) E_elas_I1 += partial_val;
+
+    // Parallelize for E_elas_I2
+    threads.clear();
+    std::fill(partial_vals.begin(), partial_vals.end(), 0.0);
+
+    for (unsigned t = 0; t < num_threads; ++t) {
+        uint64_t start_idx = t * chunk_size;
+        uint64_t end_idx = (t == num_threads - 1) ? N_power_3 : (t + 1) * chunk_size;
+
+        threads.push_back(std::thread(&V_BaTiO3_parallel::compute_partial_sum_elas_I2, this, start_idx, end_idx,
+                                      std::ref(partial_vals[t]), v0, v2));
+    }
+    for (auto& thread : threads) thread.join();
+    for (const auto& partial_val : partial_vals) E_elas_I2 += partial_val;
+
+    // Parallelize for E_elas_I3
+    threads.clear();
+    std::fill(partial_vals.begin(), partial_vals.end(), 0.0);
+
+    for (unsigned t = 0; t < num_threads; ++t) {
+        uint64_t start_idx = t * chunk_size;
+        uint64_t end_idx = (t == num_threads - 1) ? N_power_3 : (t + 1) * chunk_size;
+
+        threads.push_back(std::thread(&V_BaTiO3_parallel::compute_partial_sum_elas_I3, this, start_idx, end_idx,
+                                      std::ref(partial_vals[t]), v1, v2));
+    }
+    for (auto& thread : threads) thread.join();
+    for (const auto& partial_val : partial_vals) E_elas_I3 += partial_val;
+
+    return homogeneous_part + E_elas_I1 + E_elas_I2 + E_elas_I3;
+}
+
+
+
+void V_BaTiO3_parallel::compute_indices_mode_int(uint64_t idx, int& i, int& j, int& k) {
+    k = idx % N;
+    idx /= N;
+    j = idx % N;
+    idx /= N;
+    i = idx % N;
+}
+
+
+/// Function to calculate the inhomogeneous part of E_elas_mode_int
+void V_BaTiO3_parallel::compute_partial_sum_elas_mode_int(uint64_t start_idx, uint64_t end_idx, double& partial_val,
+                                                          const std::shared_ptr<double[]>& eta_H,
+                                                          const std::shared_ptr<double[]>& v0,
+                                                          const std::shared_ptr<double[]>& v1,
+                                                          const std::shared_ptr<double[]>& v2) {
+    partial_val = 0.0;
+    int i, j, k;
+    int i_minus_1;
+    int j_minus_1;
+    int k_minus_1;
+    int ind_Ba;
+    int ijk;
+    int iMinus1_jk;
+    int iMinus1_jMinus1_k ;
+    int i_jMinus1_k;
+    int iMinus1_j_kMinus1;
+    int ij_kMinus1;
+    int iMinus1_jMinus1_kMinus1;
+    int i_jMinus1_kMinus1;
+    double Delta_vxx_ijk;
+    double etaI1ijk;
+    double Delta_vyy_ijk;
+    double etaI2ijk;
+    double Delta_vzz_ijk;
+    double etaI3ijk;
+    double Delta_vxy_ijk;
+    double Delta_vyx_ijk;
+    double etaI6ijk;
+    double Delta_vzx_ijk;
+    double Delta_vxz_ijk;
+    double etaI5ijk;
+    double Delta_vyz_ijk;
+    double Delta_vzy_ijk;
+    double eta1ijk;
+    double eta2ijk ;
+    double eta3ijk ;
+    double eta4ijk;
+    double eta5ijk;
+    double eta6ijk;
+    double eta_H1 = eta_H[0];
+    double eta_H2 = eta_H[1];
+    double eta_H3 = eta_H[2];
+
+    double eta_H4 = eta_H[3];
+    double eta_H5 = eta_H[4];
+    double eta_H6 = eta_H[5];
+    int u_ind_ijk;
+    double E_int_ijk;
+    for (uint64_t idx = start_idx; idx < end_idx; ++idx) {
+
+        compute_indices_mode_int(idx, i, j, k);
+
+        i_minus_1 = python_mod(i - 1, N);
+         j_minus_1 = python_mod(j - 1, N);
+         k_minus_1 = python_mod(k - 1, N);
+         ind_Ba = 0;
+
+        // i,j,k
+         ijk = flattened_ind_for_E_elas(i, j, k, ind_Ba);
+        iMinus1_jk = flattened_ind_for_E_elas_mode_int(i_minus_1, j, k, ind_Ba);
+         iMinus1_jMinus1_k = flattened_ind_for_E_elas(i_minus_1, j_minus_1, k, ind_Ba);
+         i_jMinus1_k = flattened_ind_for_E_elas(i, j_minus_1, k, ind_Ba);
+         iMinus1_j_kMinus1 = flattened_ind_for_E_elas(i_minus_1, j, k_minus_1, ind_Ba);
+         ij_kMinus1 = flattened_ind_for_E_elas(i, j, k_minus_1, ind_Ba);
+         iMinus1_jMinus1_kMinus1 = flattened_ind_for_E_elas(i_minus_1, j_minus_1, k_minus_1, ind_Ba);
+         i_jMinus1_kMinus1 = flattened_ind_for_E_elas(i, j_minus_1, k_minus_1, ind_Ba);
+
+        // Calculate the Delta_vxx, Delta_vyy, Delta_vzz, etc.
+         Delta_vxx_ijk = v0[iMinus1_jk] - v0[ijk] + v0[iMinus1_jMinus1_k] - v0[i_jMinus1_k] +
+                               v0[iMinus1_j_kMinus1] - v0[ij_kMinus1] + v0[iMinus1_jMinus1_kMinus1] - v0[i_jMinus1_kMinus1];
+         etaI1ijk = Delta_vxx_ijk / 4.0;
+
+         Delta_vyy_ijk = v1[i_jMinus1_k] - v1[ijk] + v1[i_jMinus1_kMinus1] - v1[ij_kMinus1] +
+                               v1[iMinus1_jMinus1_k] - v1[iMinus1_jk] + v1[iMinus1_jMinus1_kMinus1] - v1[iMinus1_j_kMinus1];
+         etaI2ijk = Delta_vyy_ijk / 4.0;
+
+         Delta_vzz_ijk = v2[ij_kMinus1] - v2[ijk] + v2[iMinus1_j_kMinus1] - v2[iMinus1_jk] +
+                               v2[i_jMinus1_kMinus1] - v2[i_jMinus1_k] + v2[iMinus1_jMinus1_kMinus1] - v2[iMinus1_jMinus1_k];
+        etaI3ijk = Delta_vzz_ijk / 4.0;
+
+       Delta_vxy_ijk = v1[iMinus1_jk] - v1[ijk] + v1[iMinus1_jMinus1_k] - v1[i_jMinus1_k] +
+                               v1[iMinus1_j_kMinus1] - v1[ij_kMinus1] + v1[iMinus1_jMinus1_kMinus1] - v1[iMinus1_jMinus1_k];
+         Delta_vyx_ijk = v0[i_jMinus1_k] - v0[ijk] + v0[iMinus1_jMinus1_k] - v0[iMinus1_jk] +
+                               v0[i_jMinus1_kMinus1] - v0[ij_kMinus1] + v0[iMinus1_jMinus1_kMinus1] - v0[iMinus1_jMinus1_k];
+       etaI6ijk = (Delta_vxy_ijk + Delta_vyx_ijk) / 4.0;
+
+        Delta_vzx_ijk = v0[ij_kMinus1] - v0[ijk] + v0[iMinus1_j_kMinus1] - v0[iMinus1_jk] +
+                               v0[i_jMinus1_kMinus1] - v0[i_jMinus1_k] + v0[iMinus1_jMinus1_kMinus1] - v0[iMinus1_j_kMinus1];
+         Delta_vxz_ijk = v2[iMinus1_jk] - v2[ijk] + v2[iMinus1_j_kMinus1] - v2[ij_kMinus1] +
+                               v2[iMinus1_jMinus1_k] - v2[i_jMinus1_k] + v2[iMinus1_jMinus1_kMinus1] - v2[iMinus1_j_kMinus1];
+         etaI5ijk = (Delta_vzx_ijk + Delta_vxz_ijk) / 4.0;
+
+        Delta_vyz_ijk = v2[i_jMinus1_k] - v2[ijk] + v2[i_jMinus1_kMinus1] - v2[ij_kMinus1] +
+                               v2[iMinus1_jMinus1_k] - v2[iMinus1_jk] + v2[iMinus1_jMinus1_kMinus1] - v2[i_jMinus1_kMinus1];
+         Delta_vzy_ijk = v1[ij_kMinus1] - v1[ijk] + v1[i_jMinus1_kMinus1] - v1[i_jMinus1_k] +
+                               v1[iMinus1_j_kMinus1] - v1[iMinus1_jk] + v1[iMinus1_jMinus1_kMinus1] - v1[i_jMinus1_kMinus1];
+        double etaI4ijk = (Delta_vyz_ijk + Delta_vzy_ijk) / 4.0;
+
+        // Calculate eta values
+         eta1ijk = eta_H1 + etaI1ijk;
+         eta2ijk = eta_H2 + etaI2ijk;
+        eta3ijk = eta_H3+ etaI3ijk;
+         eta4ijk = eta_H4 + etaI4ijk;
+        eta5ijk = eta_H5 + etaI5ijk;
+         eta6ijk = eta_H6 + etaI6ijk;
+
+        // Calculate energy contribution at this point
+         u_ind_ijk = i * N_power_2 + j * N + k;
+       E_int_ijk = 0.0;
+
+        E_int_ijk += B100_val * eta1ijk * u0[u_ind_ijk] * u0[u_ind_ijk];
+        E_int_ijk += B111_val * eta1ijk * u1[u_ind_ijk] * u1[u_ind_ijk];
+        E_int_ijk += B122_val * eta1ijk * u2[u_ind_ijk] * u2[u_ind_ijk];
+        E_int_ijk += B200_val * eta2ijk * u0[u_ind_ijk] * u0[u_ind_ijk];
+        E_int_ijk += B211_val * eta2ijk * u1[u_ind_ijk] * u1[u_ind_ijk];
+        E_int_ijk += B222_val * eta2ijk * u2[u_ind_ijk] * u2[u_ind_ijk];
+        E_int_ijk += B300_val * eta3ijk * u0[u_ind_ijk] * u0[u_ind_ijk];
+        E_int_ijk += B311_val * eta3ijk * u1[u_ind_ijk] * u1[u_ind_ijk];
+        E_int_ijk += B322_val * eta3ijk * u2[u_ind_ijk] * u2[u_ind_ijk];
+        E_int_ijk += B412_val * eta4ijk * u1[u_ind_ijk] * u2[u_ind_ijk];
+        E_int_ijk += B421_val * eta4ijk * u2[u_ind_ijk] * u1[u_ind_ijk];
+        E_int_ijk += B502_val * eta5ijk * u0[u_ind_ijk] * u2[u_ind_ijk];
+        E_int_ijk += B520_val * eta5ijk * u2[u_ind_ijk] * u0[u_ind_ijk];
+        E_int_ijk += B601_val * eta6ijk * u0[u_ind_ijk] * u1[u_ind_ijk];
+        E_int_ijk += B610_val * eta6ijk * u1[u_ind_ijk] * u0[u_ind_ijk];
+
+        partial_val += 0.5 * E_int_ijk;
+    }
+}
+
+
+
+/// Main elastic energy with mode interaction function using std::thread
+double V_BaTiO3_parallel::E_elas_mode_int(const std::shared_ptr<double[]>& eta_H, const std::shared_ptr<double[]>& v0,
+                                         const std::shared_ptr<double[]>& v1, const std::shared_ptr<double[]>& v2) {
+    double val = 0.0;
+
+    // Number of threads to use
+    const unsigned num_threads = std::thread::hardware_concurrency();
+    std::vector<double> partial_vals(num_threads, 0.0);
+
+    // Parallelize the computation for E_elas_mode_int
+    threads.clear();
+    uint64_t chunk_size = N_power_3 / num_threads;
+
+    for (unsigned t = 0; t < num_threads; ++t) {
+        uint64_t start_idx = t * chunk_size;
+        uint64_t end_idx = (t == num_threads - 1) ? N_power_3 : (t + 1) * chunk_size;
+
+        threads.push_back(std::thread(&V_BaTiO3_parallel::compute_partial_sum_elas_mode_int, this, start_idx, end_idx,
+                                      std::ref(partial_vals[t]), eta_H, v0, v1, v2));
+    }
+
+    for (auto& thread : threads) thread.join();
+    for (const auto& partial_val : partial_vals) val += partial_val;
+
+    return val;
+}
+
+int V_BaTiO3_parallel::flattened_ind_for_E_elas_mode_int(const int& i, const int& j, const int& k, const int& q)
+{
+    //i,j,k take values from 0 to N1, q takes values from 0 to 4
+    int ind = q + 5 * k + 5 * j * N + 5 * i * N * N;
+
+    return ind;
 }

@@ -43,7 +43,7 @@ xi_O_parallel=-0.53
 xi_O_perpendicular=-0.21
 
 xiVec=np.array([xi_Ba,xi_Ti,xi_O_parallel,xi_O_perpendicular,xi_O_perpendicular])
-lastFileNum=20
+lastFileNum=5
 def sort_data_files_by_flushEnd(oneDir):
     dataFilesAll=[]
     flushEndAll=[]

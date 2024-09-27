@@ -84,7 +84,8 @@ public:
 
     //short-range energy, 3NN term
     double E_short_3NN();
-
+    void compute_indices_3NN(uint64_t idx, int& n0, int& n1, int& n2) ;
+    void compute_partial_sum_3NN(uint64_t start_idx, uint64_t end_idx, double& partial_val, int alpha, int beta) ;
     // delta function
     double delta(const int& i, const int& j);
 
@@ -96,14 +97,30 @@ public:
 
     double E_elas(const std::shared_ptr<double[]>& eta_H, const std::shared_ptr<double[]>& v0,
                   const std::shared_ptr<double[]>& v1, const std::shared_ptr<double[]>& v2);
-
+    void compute_indices_elas(uint64_t idx, int& i, int& j, int& k) ;
     int flattened_ind_for_E_elas(const int& i, const int& j, const int& k, const int& q);
-
+    void compute_partial_sum_elas_I1(uint64_t start_idx, uint64_t end_idx, double& partial_val,
+                                                    const std::shared_ptr<double[]>& v0,
+                                                    const std::shared_ptr<double[]>& v1);
+    void compute_partial_sum_elas_I2(uint64_t start_idx, uint64_t end_idx, double& partial_val,
+                                                    const std::shared_ptr<double[]>& v0,
+                                                    const std::shared_ptr<double[]>& v2) ;
+    void compute_partial_sum_elas_I3(uint64_t start_idx, uint64_t end_idx, double& partial_val,
+                                                    const std::shared_ptr<double[]>& v1,
+                                                    const std::shared_ptr<double[]>& v2) ;
     //elastic-mode interaction
     double E_elas_mode_int(const std::shared_ptr<double[]>& eta_H, const std::shared_ptr<double[]>& v0,
                           const std::shared_ptr<double[]>& v1, const std::shared_ptr<double[]>& v2);
 
     int flattened_ind_for_E_elas_mode_int(const int& i, const int& j, const int& k, const int& q);
+    void compute_indices_mode_int(uint64_t idx, int& i, int& j, int& k) ;
+    void compute_partial_sum_elas_mode_int(uint64_t start_idx, uint64_t end_idx, double& partial_val,
+                                                          const std::shared_ptr<double[]>& eta_H,
+                                                          const std::shared_ptr<double[]>& v0,
+                                                          const std::shared_ptr<double[]>& v1,
+                                                          const std::shared_ptr<double[]>& v2);
+
+
 
 public:
     std::string coefsInStr;
