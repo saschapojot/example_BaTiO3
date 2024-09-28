@@ -8,10 +8,10 @@ import sys
 import re
 import warnings
 
-from oauthlib.uri_validate import pct_encoded
+
 from scipy.stats import ks_2samp
 import glob
-from pathlib import Path
+
 import os
 import json
 import pickle
@@ -43,7 +43,7 @@ xi_O_parallel=-0.53
 xi_O_perpendicular=-0.21
 
 xiVec=np.array([xi_Ba,xi_Ti,xi_O_parallel,xi_O_perpendicular,xi_O_perpendicular])
-lastFileNum=5
+lastFileNum=2550
 def sort_data_files_by_flushEnd(oneDir):
     dataFilesAll=[]
     flushEndAll=[]
@@ -266,8 +266,13 @@ def check_oneDistDataFilesForOneT(v0Dir,v1Dir,v2Dir,i_val,j_val,k_val):
     print("mean(u1_oneUnitCell)="+str(np.mean(u1_oneUnitCell)))
     print("mean(u2_oneUnitCell)="+str(np.mean(u2_oneUnitCell)))
 
+    print("np.mean(np.abs(u0_oneUnitCell))="+str(np.mean(np.abs(u0_oneUnitCell))))
+    print("np.mean(np.abs(u1_oneUnitCell))="+str(np.mean(np.abs(u1_oneUnitCell))))
+    print("np.mean(np.abs(u2_oneUnitCell))="+str(np.mean(np.abs(u2_oneUnitCell))))
 
-    # sameVec_v0v1v2=[]
+
+
+# sameVec_v0v1v2=[]
     # lagVec_v0v1v2=[]
 
     sameVec_u0u1u2=[]
