@@ -43,7 +43,7 @@ xi_O_parallel=-0.53
 xi_O_perpendicular=-0.21
 
 xiVec=np.array([xi_Ba,xi_Ti,xi_O_parallel,xi_O_perpendicular,xi_O_perpendicular])
-lastFileNum=2550
+lastFileNum=3800
 def sort_data_files_by_flushEnd(oneDir):
     dataFilesAll=[]
     flushEndAll=[]
@@ -476,7 +476,7 @@ lagMax=np.max(lagVecAll)
 numDataPoints=np.min([numDataPointsU,numDataPoints_u0u1u2,numDataPoints_eta_H_1_6])
 print("lagMax="+str(lagMax))
 print("numDataPoints="+str(numDataPoints))
-
+sweep_to_write=jsonDataFromConf["sweep_to_write"]
 ############################################
 summary_U_distFile=TDirRoot+"/summary_U_dist.txt"
 statThreshhold=0.1
@@ -504,7 +504,8 @@ if (np.min(pVec)>=0.01 or np.max(statVec)<=statThreshhold) and numDataPoints>=20
         +"numDataPoints="+str(numDataPoints)+"\n" \
         +"startingFileInd="+str(startingFileInd)+"\n" \
         +"startingVecPosition="+str(startingVecPosition)+"\n" \
-        +"newDataPointNum="+str(newDataPointNum)+"\n"
+        +"newDataPointNum="+str(newDataPointNum)+"\n"\
+        +"sweep_to_write="+str(sweep_to_write)+"\n"
     print(msg)
     with open(summary_U_distFile,"w+") as fptr:
         fptr.writelines(msg)

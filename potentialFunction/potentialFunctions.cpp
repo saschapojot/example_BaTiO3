@@ -1802,16 +1802,16 @@ double V_BaTiO3_parallel::operator()(const std::shared_ptr<double[]>& eta_H,cons
     double energy_dipole = E_dpl();
     // std::cout << "energy_dipole=" << energy_dipole << std::endl;
 
-    double energy_short = E_short();
+    // double energy_short = E_short();
     // std::cout << "energy_short=" << energy_short << std::endl;
 
-    double energy_elas = E_elas(eta_H, v0, v1, v2);
+    // double energy_elas = E_elas(eta_H, v0, v1, v2);
     // std::cout << "energy_elas=" << energy_elas << std::endl;
 
-    double energy_elas_mode_int=E_elas_mode_int(eta_H,v0,v1,v2);
+    // double energy_elas_mode_int=E_elas_mode_int(eta_H,v0,v1,v2);
     // std::cout<<"energy_elas_mode_int="<<energy_elas_mode_int<<std::endl;
 
-    double pot_energy=energy_self+energy_dipole+energy_short+energy_elas+energy_elas_mode_int;
+    double pot_energy=energy_self+energy_dipole;//+energy_short+energy_elas+energy_elas_mode_int;
     return pot_energy;
 
 
@@ -1935,7 +1935,7 @@ void V_BaTiO3_parallel::compute_partial_sum(uint64_t start_idx, uint64_t end_idx
 double V_BaTiO3_parallel::E_dpl()
 {
     double val = 0.0;
-    uint64_t N_power_6 = N * N * N * N * N * N;
+    // uint64_t N_power_6 = N * N * N * N * N * N;
 
     // Number of threads to use
     const unsigned num_threads = std::thread::hardware_concurrency();
