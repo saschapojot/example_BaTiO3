@@ -249,6 +249,10 @@ public:
         int QElemNum = static_cast<int>(std::pow(N, 6) * 9);
         Q = std::shared_ptr<double[]>(new double[QElemNum], std::default_delete<double[]>());
 
+        this->coef_Ba=xi_Ba;
+        this->coef_Ti=xi_Ti/8.0;
+        this->coef_O_parallel=xi_O_parallel/2.0;
+        this->coef_O_perpendicular=xi_O_perpendicular/2.0;
 
         this->fill_Q();
 
@@ -308,7 +312,8 @@ public:
             double v_O2 = v[starting_ind + 3];
             double v_O3 = v[starting_ind + 4];
 
-            u[j] = xi_Ba * v_Ba + xi_Ti * v_Ti + xi_O_parallel * v_O1 + xi_O_perpendicular * (v_O2 + v_O3);
+            // u[j] = xi_Ba * v_Ba + xi_Ti * v_Ti + xi_O_parallel * v_O1 + xi_O_perpendicular * (v_O2 + v_O3);
+            u[j]=coef_Ba * v_Ba + coef_Ti * v_Ti + coef_O_parallel * v_O1 + coef_O_perpendicular * (v_O2 + v_O3);
         }
     }//end v2u
 
@@ -1374,6 +1379,11 @@ public:
     int N;
     double lambda;
     int elemNumTot_u;
+
+    double coef_Ba;
+    double coef_Ti;
+    double coef_O_parallel;
+    double coef_O_perpendicular;
 
     std::shared_ptr<double[]> u0;
     std::shared_ptr<double[]> u1;

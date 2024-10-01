@@ -78,7 +78,7 @@ formated_vals2Potential=[format_using_decimal(val) for val in vals2Potential]
 str_formated_vals2Potential=','.join(map(str, formated_vals2Potential))
 # xiVec=[format_using_decimal(elem) for elem in xiVec]
 
-TVals=[290,300,340]
+TVals=[100+10*n for n in range(0,16)]
 N=2
 dataRoot="./dataAll/"
 dataOutDir=dataRoot+"/dataAllUnitCell"+str(N)+"/"
