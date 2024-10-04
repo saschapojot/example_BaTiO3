@@ -35,7 +35,7 @@ B1xx_val= -2.18
 B1yy_val= -0.20
 B4yz_val= -0.08
 
-B100=4.64
+B100=-2.18
 B111=-0.2
 B412=-0.08
 
@@ -135,7 +135,7 @@ def contents_to_conf(k):
         "\n",
         "#within each flush,  sweep_to_write mc computations are executed\n",
         "\n",
-        "default_flush_num=2\n",
+        "default_flush_num=4000\n",
         "\n",
         "h=5e-2\n",
         "\n",
