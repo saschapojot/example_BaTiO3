@@ -250,9 +250,9 @@ public:
         Q = std::shared_ptr<double[]>(new double[QElemNum], std::default_delete<double[]>());
 
         this->coef_Ba=xi_Ba;
-        this->coef_Ti=xi_Ti/8.0;
-        this->coef_O_parallel=xi_O_parallel/2.0;
-        this->coef_O_perpendicular=xi_O_perpendicular/2.0;
+        this->coef_Ti=xi_Ti;
+        this->coef_O_parallel=xi_O_parallel;
+        this->coef_O_perpendicular=xi_O_perpendicular;
 
         this->fill_Q();
 
