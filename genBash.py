@@ -49,5 +49,28 @@ def contents_to_bash(k):
     with open(outBashName,"w+") as fptr:
         fptr.writelines(contents)
 
+# for k in range(0,len(TStrAll)):
+#     contents_to_bash(k)
+
+
+def check_after1run_bash(k):
+    TStr=TStrAll[k]
+    contents=[
+        "#!/bin/bash\n",
+        "#SBATCH -n 24\n",
+        "#SBATCH -N 1\n",
+        "#SBATCH -t 0-60:00\n",
+        "#SBATCH -p hebhcnormal01\n"
+        "#SBATCH --mem=40GB\n",
+        f"#SBATCH -o outmcT{TStr}.out\n",
+        f"#SBATCH -e outmcT{TStr}.out\n",
+        "cd /public/home/hkust_jwliu_1/liuxi/Document/cppCode/example_BaTiO3\n",
+        f"python3 -u check_after_one_run.py  ./dataAll/dataAllUnitCell2/T{TStr}/run_T{TStr}.mc.conf"
+    ]
+
+    outBashName=outPath+f"/check_T{TStr}.sh"
+    with open(outBashName,"w+") as fptr:
+        fptr.writelines(contents)
+
 for k in range(0,len(TStrAll)):
-    contents_to_bash(k)
+    check_after1run_bash(k)
