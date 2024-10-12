@@ -56,7 +56,7 @@ def v0_to_u0(oneTFile):
     matchT=re.search(r'T([-+]?(?:\d*\.\d+|\d+)(?:[eE][-+]?\d+)?)',oneTFile)
     TVal=float(matchT.group(1))
 
-    v0_folder=oneTFile+"/v0/"
+    v0_folder=oneTFile
 
     v0_filesAll=[]
     for one_v0File in glob.glob(v0_folder+"/v0*.csv"):
@@ -77,7 +77,7 @@ def v1_to_u1(oneTFile):
     matchT=re.search(r'T([-+]?(?:\d*\.\d+|\d+)(?:[eE][-+]?\d+)?)',oneTFile)
     TVal=float(matchT.group(1))
 
-    v1_folder=oneTFile+"/v1/"
+    v1_folder=oneTFile
 
     v1_filesAll=[]
     for one_v1File in glob.glob(v1_folder+"/v1*.csv"):
@@ -97,7 +97,7 @@ def v2_to_u2(oneTFile):
     matchT=re.search(r'T([-+]?(?:\d*\.\d+|\d+)(?:[eE][-+]?\d+)?)',oneTFile)
     TVal=float(matchT.group(1))
 
-    v2_folder=oneTFile+"/v2/"
+    v2_folder=oneTFile
 
     v2_filesAll=[]
     for one_v2File in glob.glob(v2_folder+"/v2*.csv"):

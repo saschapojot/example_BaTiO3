@@ -63,7 +63,7 @@ def load_one_unitCell(oneTFile,component_name,i,j,k):
     :param k:
     :return:
     """
-    one_v_file=oneTFile+"/"+component_name+"/"+component_name+"_"+str(i)+"_"+str(j)+"_"+str(k)+".csv"
+    one_v_file=oneTFile+"/"+component_name+"_"+str(i)+"_"+str(j)+"_"+str(k)+".csv"
 
     csv_arr=np.array(pd.read_csv(one_v_file,header=None))
 

@@ -88,7 +88,7 @@ def generate_one_U_point(oneTFile):
     matchT=re.search(r'T([-+]?(?:\d*\.\d+|\d+)(?:[eE][-+]?\d+)?)',oneTFile)
     TVal=float(matchT.group(1))
 
-    U_distPath=oneTFile+"/U/U.csv"
+    U_distPath=oneTFile+"/U.csv"
 
     df=pd.read_csv(U_distPath)
 

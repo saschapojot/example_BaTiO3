@@ -39,7 +39,7 @@ def generate_one_eta_H(oneTFile):
     matchT=re.search(r'T([-+]?(?:\d*\.\d+|\d+)(?:[eE][-+]?\d+)?)',oneTFile)
     TVal=float(matchT.group(1))
 
-    eta_path=oneTFile+"/eta_H/eta_H.csv"
+    eta_path=oneTFile+"/eta_H.csv"
     df=pd.read_csv(eta_path,header=None)
 
     num_rows,_ = df.shape
