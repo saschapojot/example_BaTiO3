@@ -91,7 +91,7 @@ def auto_corrForOneVec(vec):
     :return:
     """
     same=False
-    eps=5e-2
+    eps=5e-1
     NLags=int(len(vec)*3/4)
 
     with warnings.catch_warnings():
