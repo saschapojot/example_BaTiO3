@@ -19,7 +19,7 @@ def format_using_decimal(value, precision=10):
 outPath="./bashFiles/"
 Path(outPath).mkdir(exist_ok=True,parents=True)
 
-TVals=[100+10*n for n in range(0,16)]
+TVals=[110,120,130,140,150,160,170,180]
 TStrAll=[]
 # print(TDirsAll)
 for k in range(0,len(TVals)):
@@ -52,7 +52,7 @@ def contents_to_bash(k):
 # for k in range(0,len(TStrAll)):
 #     contents_to_bash(k)
 
-
+N=2
 def check_after1run_bash(k):
     TStr=TStrAll[k]
     contents=[
@@ -65,10 +65,10 @@ def check_after1run_bash(k):
         f"#SBATCH -o outmcT{TStr}.out\n",
         f"#SBATCH -e outmcT{TStr}.out\n",
         "cd /public/home/hkust_jwliu_1/liuxi/Document/cppCode/example_BaTiO3\n",
-        f"python3 -u check_after_one_run.py  ./dataAll/dataAllUnitCell2/T{TStr}/run_T{TStr}.mc.conf"
+        f"python3 -u exec_noChecking.py  {TStr} {N}"
     ]
 
-    outBashName=outPath+f"/check_T{TStr}.sh"
+    outBashName=outPath+f"/run_T{TStr}.sh"
     with open(outBashName,"w+") as fptr:
         fptr.writelines(contents)
 
